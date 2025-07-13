@@ -1,0 +1,12 @@
+<RCC>
+    <qresource prefix="/">
+        <file>entities/fist.png</file>
+        <file>entities/knife.png</file>
+        <file>entities/player_default.png</file>
+        <file>entities/solidball.png</file>
+        <file>terrain/grass.png</file>
+        <file>terrain/ice.png</file>
+        <file>terrain/mud.png</file>
+        <file>entities/shirt.png</file>
+    </qresource>
+</RCC>

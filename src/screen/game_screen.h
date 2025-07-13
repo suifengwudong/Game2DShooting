@@ -1,0 +1,35 @@
+#ifndef GAME_WIDGET_H
+#define GAME_WIDGET_H
+
+#include "../entities/player.h"
+#include "../map/map.h"
+#include "screen.h"
+#include <QWidget>
+#include <QGraphicsScene>
+#include <QGraphicsView>
+#include <QTimer>
+#include <QList>
+
+class GameScreen : public Screen
+{
+public:
+    explicit GameScreen(QWidget *parent = nullptr);
+    ~GameScreen();
+
+    void keyPressEvent(QKeyEvent *event) override;
+    void keyReleaseEvent(QKeyEvent *event) override;
+
+    void extracted();
+    void initGame();
+    void updateGame();
+
+private:
+    QGraphicsScene *gameScene;
+    QGraphicsView *gameView;
+    QTimer *updateTimer;
+
+    QList<Player*> players;
+    Map *gameMap;
+};
+
+#endif // GAME_WIDGET_H
