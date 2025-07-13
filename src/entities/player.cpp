@@ -15,8 +15,7 @@ Player::Player(QString const playerName, int ax, int ay, QWidget *parent) :
     onGround = false;
     proImg = new QImage();
     if (!proImg->load("://entities/player_default.png")){
-        // 处理加载失败的情况
-        qDebug() << "Failed to load fist image";
+        qDebug() << "Failed to load player image";
     }
 
     weapon = new Fist();
@@ -50,6 +49,8 @@ Player::Player(QString const playerName, int ax, int ay, QWidget *parent) :
 Player::~Player() {
     delete hud;
     delete proImg;
+    delete weapon;
+    delete defense;
 }
 
 void Player::keyPressEvent(QKeyEvent *event) {
@@ -121,24 +122,119 @@ void Player::drop() {
 
 void Player::attack(Player* otherPlayer) {
     if (otherPlayer && !onAttackCD) {
-        auto vec = QPoint(0, 0);
-        if (facingRight) {
-            vec = QPoint(5, 0);
+        if (auto knife = dynamic_cast<Knife*>(weapon)) {
+            // 小刀攻击逻辑
+            auto vec = QPoint(0, 0);
+            if (facingRight) {
+                vec = QPoint(5, 0);
+            } else {
+                vec = QPoint(-5, 0);
+            }
+
+            if (PhysicsEngine::getInstance()->checkCollision(otherPlayer, weapon))
+            {
+                otherPlayer->health -= weapon->getHarm();
+                otherPlayer->setVel(vel() + vec);
+                otherPlayer->onHealthChanged();
+            }
+
+            onAttackCD = true;
+            attackCDTimer.start(ATTACK_CD_TIME);  // Attack CD is 1s
+
+            emit hudStartAttackCDCountingDown();
+        } else if (auto solidBall = dynamic_cast<SolidBall*>(weapon)) {
+            // 实心球攻击逻辑
+            if (solidBall->use()) {
+                // 实现斜抛运动逻辑
+                // ...
+
+                if (PhysicsEngine::getInstance()->checkCollision(otherPlayer, weapon))
+                {
+                    otherPlayer->health -= weapon->getHarm();
+                    otherPlayer->setVel(vel() + QPoint(5, -5)); // 简单示例
+                    otherPlayer->onHealthChanged();
+                }
+
+                if (solidBall->use() == false) {
+                    delete weapon;
+                    weapon = new Fist();
+                    hud->setWeaponImage(weapon->getImage());
+                }
+
+                onAttackCD = true;
+                attackCDTimer.start(ATTACK_CD_TIME);  // Attack CD is 1s
+
+                emit hudStartAttackCDCountingDown();
+            }
+        } else if (auto rifle = dynamic_cast<Rifle*>(weapon)) {
+            // 步枪攻击逻辑
+            if (rifle->use()) {
+                // 实现直线运动逻辑
+                // ...
+
+                if (PhysicsEngine::getInstance()->checkCollision(otherPlayer, weapon))
+                {
+                    otherPlayer->health -= weapon->getHarm();
+                    otherPlayer->setVel(vel() + QPoint(10, 0)); // 简单示例
+                    otherPlayer->onHealthChanged();
+                }
+
+                if (rifle->use() == false) {
+                    delete weapon;
+                    weapon = new Fist();
+                    hud->setWeaponImage(weapon->getImage());
+                }
+
+                onAttackCD = true;
+                attackCDTimer.start(ATTACK_CD_TIME);  // Attack CD is 1s
+
+                emit hudStartAttackCDCountingDown();
+            }
+        } else if (auto sniperRifle = dynamic_cast<SniperRifle*>(weapon)) {
+            // 狙击枪攻击逻辑
+            if (sniperRifle->use()) {
+                // 实现直线运动逻辑
+                // ...
+
+                if (PhysicsEngine::getInstance()->checkCollision(otherPlayer, weapon))
+                {
+                    otherPlayer->health -= weapon->getHarm();
+                    otherPlayer->setVel(vel() + QPoint(20, 0)); // 简单示例
+                    otherPlayer->onHealthChanged();
+                }
+
+                if (sniperRifle->use() == false) {
+                    delete weapon;
+                    weapon = new Fist();
+                    hud->setWeaponImage(weapon->getImage());
+                }
+
+                onAttackCD = true;
+                attackCDTimer.start(ATTACK_CD_TIME);  // Attack CD is 1s
+
+                emit hudStartAttackCDCountingDown();
+            }
         } else {
-            vec = QPoint(-5, 0);
+            // 原有武器攻击逻辑
+            auto vec = QPoint(0, 0);
+            if (facingRight) {
+                vec = QPoint(5, 0);
+            } else {
+                vec = QPoint(-5, 0);
+            }
+
+            if (PhysicsEngine::getInstance()->checkCollision(otherPlayer, weapon))
+            {
+                otherPlayer->health -= weapon->getHarm();
+                otherPlayer->setVel(vel() + vec);
+                otherPlayer->onHealthChanged();
+            }
+
+            onAttackCD = true;
+            attackCDTimer.start(ATTACK_CD_TIME);  // Attack CD is 1s
+
+            emit hudStartAttackCDCountingDown();
         }
-
-        if (PhysicsEngine::getInstance()->checkCollision(otherPlayer, weapon))
-        {
-            otherPlayer->health -= weapon->getHarm();
-            otherPlayer->setVel(vel() + vec);
-            otherPlayer->onHealthChanged();
-        }
-
-        onAttackCD = true;
-        attackCDTimer.start(ATTACK_CD_TIME);  // Attack CD is 1s
-
-        emit hudStartAttackCDCountingDown();
     }
 }
 
