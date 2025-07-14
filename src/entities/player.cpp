@@ -75,9 +75,9 @@ void Player::update() {
     if (onGround) {
         // jump and crouch can not happen simutaneously
         if (keyStates[keys->at(0)]) jump();
-        else if (keyStates[keys->at(3)]) crouch();
+        else if (keyStates[keys->at(2)]) crouch();
     } else {
-        if (keyStates[keys->at(3)]) drop();
+        if (keyStates[keys->at(2)]) drop();
     }
 
     if (keyStates[keys->at(1)]) {
@@ -122,119 +122,59 @@ void Player::drop() {
 
 void Player::attack(Player* otherPlayer) {
     if (otherPlayer && !onAttackCD) {
-        if (auto knife = dynamic_cast<Knife*>(weapon)) {
-            // 小刀攻击逻辑
-            auto vec = QPoint(0, 0);
+        if (dynamic_cast<Fist*>(weapon)) {
+            QPoint vec(0, 0);
             if (facingRight) {
                 vec = QPoint(5, 0);
             } else {
                 vec = QPoint(-5, 0);
             }
 
-            if (PhysicsEngine::getInstance()->checkCollision(otherPlayer, weapon))
-            {
+            if (PhysicsEngine::getInstance()->checkCollision(otherPlayer, weapon)) {
                 otherPlayer->health -= weapon->getHarm();
                 otherPlayer->setVel(vel() + vec);
                 otherPlayer->onHealthChanged();
             }
-
-            onAttackCD = true;
-            attackCDTimer.start(ATTACK_CD_TIME);  // Attack CD is 1s
-
-            emit hudStartAttackCDCountingDown();
-        } else if (auto solidBall = dynamic_cast<SolidBall*>(weapon)) {
-            // 实心球攻击逻辑
-            if (solidBall->use()) {
-                // 实现斜抛运动逻辑
-                // ...
-
-                if (PhysicsEngine::getInstance()->checkCollision(otherPlayer, weapon))
-                {
-                    otherPlayer->health -= weapon->getHarm();
-                    otherPlayer->setVel(vel() + QPoint(5, -5)); // 简单示例
-                    otherPlayer->onHealthChanged();
-                }
-
-                if (solidBall->use() == false) {
-                    delete weapon;
-                    weapon = new Fist();
-                    hud->setWeaponImage(weapon->getImage());
-                }
-
-                onAttackCD = true;
-                attackCDTimer.start(ATTACK_CD_TIME);  // Attack CD is 1s
-
-                emit hudStartAttackCDCountingDown();
-            }
-        } else if (auto rifle = dynamic_cast<Rifle*>(weapon)) {
-            // 步枪攻击逻辑
-            if (rifle->use()) {
-                // 实现直线运动逻辑
-                // ...
-
-                if (PhysicsEngine::getInstance()->checkCollision(otherPlayer, weapon))
-                {
-                    otherPlayer->health -= weapon->getHarm();
-                    otherPlayer->setVel(vel() + QPoint(10, 0)); // 简单示例
-                    otherPlayer->onHealthChanged();
-                }
-
-                if (rifle->use() == false) {
-                    delete weapon;
-                    weapon = new Fist();
-                    hud->setWeaponImage(weapon->getImage());
-                }
-
-                onAttackCD = true;
-                attackCDTimer.start(ATTACK_CD_TIME);  // Attack CD is 1s
-
-                emit hudStartAttackCDCountingDown();
-            }
-        } else if (auto sniperRifle = dynamic_cast<SniperRifle*>(weapon)) {
-            // 狙击枪攻击逻辑
-            if (sniperRifle->use()) {
-                // 实现直线运动逻辑
-                // ...
-
-                if (PhysicsEngine::getInstance()->checkCollision(otherPlayer, weapon))
-                {
-                    otherPlayer->health -= weapon->getHarm();
-                    otherPlayer->setVel(vel() + QPoint(20, 0)); // 简单示例
-                    otherPlayer->onHealthChanged();
-                }
-
-                if (sniperRifle->use() == false) {
-                    delete weapon;
-                    weapon = new Fist();
-                    hud->setWeaponImage(weapon->getImage());
-                }
-
-                onAttackCD = true;
-                attackCDTimer.start(ATTACK_CD_TIME);  // Attack CD is 1s
-
-                emit hudStartAttackCDCountingDown();
+        } else if (dynamic_cast<Knife*>(weapon)) {
+            if (PhysicsEngine::getInstance()->checkCollision(otherPlayer, weapon)) {
+                otherPlayer->health -= weapon->getHarm();
+                otherPlayer->onHealthChanged();
             }
         } else {
-            // 原有武器攻击逻辑
-            auto vec = QPoint(0, 0);
-            if (facingRight) {
-                vec = QPoint(5, 0);
-            } else {
-                vec = QPoint(-5, 0);
+            if (dynamic_cast<SolidBall*>(weapon)) {
+                if (facingRight) {
+                    weapon->setVel(vel() + QPoint(5, 5));
+                } else {
+                    weapon->setVel(vel() + QPoint(-5, 5));
+                }
+            } else if (dynamic_cast<Rifle*>(weapon)) {
+                Bullet* bullet;
+                if (facingRight) {
+                    bullet = new Bullet(pos(), QPointF(5, 0), NORMAL_BULLET, weapon);
+                } else {
+                    bullet = new Bullet(pos(), QPointF(-5, 0), NORMAL_BULLET, weapon);
+                }
+                emit bulletShot(bullet);
+            } else if (dynamic_cast<SniperRifle*>(weapon)) {
+                Bullet* bullet;
+                if (facingRight) {
+                    bullet = new Bullet(pos(), QPointF(5, 0), SNIPER_BULLET, weapon);
+                } else {
+                    bullet = new Bullet(pos(), QPointF(-5, 0), SNIPER_BULLET, weapon);
+                }
+                emit bulletShot(bullet);
             }
-
-            if (PhysicsEngine::getInstance()->checkCollision(otherPlayer, weapon))
-            {
-                otherPlayer->health -= weapon->getHarm();
-                otherPlayer->setVel(vel() + vec);
-                otherPlayer->onHealthChanged();
-            }
-
-            onAttackCD = true;
-            attackCDTimer.start(ATTACK_CD_TIME);  // Attack CD is 1s
-
-            emit hudStartAttackCDCountingDown();
         }
+
+        if (!weapon->use()) {
+            delete weapon;
+            weapon = new Fist();
+            hud->setWeaponImage(weapon->getImage());
+        }
+
+        onAttackCD = true;
+        attackCDTimer.start(weapon->getAttackCD());  // Set attack CD
+        emit hudStartAttackCDCountingDown();
     }
 }
 

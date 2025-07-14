@@ -15,7 +15,7 @@ HUD::HUD(Player* player, QWidget *parent)
     attackCDEffect->setOpacity(1);
 
     opacityAnimation = new QPropertyAnimation(attackCDEffect, "opacity", this);
-    opacityAnimation->setDuration(ATTACK_CD_TIME); // 动画时长与攻击冷却时间一致
+    opacityAnimation->setDuration(player->weapon->getAttackCD()); // 动画时长与攻击冷却时间一致
     opacityAnimation->setEasingCurve(QEasingCurve::Linear);
 }
 

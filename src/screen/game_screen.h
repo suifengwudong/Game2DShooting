@@ -2,6 +2,7 @@
 #define GAME_WIDGET_H
 
 #include "../entities/player.h"
+#include "../entities/weapon/bullet.h"
 #include "../map/map.h"
 #include "screen.h"
 #include <QWidget>
@@ -19,7 +20,6 @@ public:
     void keyPressEvent(QKeyEvent *event) override;
     void keyReleaseEvent(QKeyEvent *event) override;
 
-    void extracted();
     void initGame();
     void updateGame();
 
@@ -29,7 +29,11 @@ private:
     QTimer *updateTimer;
 
     QList<Player*> players;
+    QList<Bullet*> bullets;
     Map *gameMap;
+
+    void checkCollisionWithTerrain(Player *player);
+    void randomSpawnItems();
 };
 
 #endif // GAME_WIDGET_H

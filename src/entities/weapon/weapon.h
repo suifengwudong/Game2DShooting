@@ -4,60 +4,66 @@
 #include "../item_base/item_attack.h"
 #include <QTimer>
 
-class Fist : public ItemAttack
+class Bullet;
+
+class Weapon: public ItemAttack
+{
+public:
+    explicit Weapon() {}
+    ~Weapon() {}
+
+    virtual bool use() = 0;
+};
+
+class Fist : public Weapon
 {
 public:
     explicit Fist();
     ~Fist();
 
-    void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget = nullptr) override;
-
+    bool use() override;
 };
 
-class Knife : public ItemAttack
+class Knife : public Weapon
 {
 public:
     explicit Knife();
     ~Knife();
 
-    void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget = nullptr) override;
+    bool use() override;
 };
 
-class SolidBall : public ItemAttack
+class SolidBall : public Weapon
 {
 public:
-    explicit SolidBall(int count);
+    explicit SolidBall();
     ~SolidBall();
 
-    void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget = nullptr) override;
-    bool use();
-
-private:
-    int ballCount;
+    bool use() override;
 };
 
-class Rifle : public ItemAttack
+class Rifle : public Weapon
 {
 public:
     explicit Rifle(int bulletCount);
     ~Rifle();
 
-    void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget = nullptr) override;
-    bool use();
+    bool use() override;
+    Bullet* createBullet(QPointF startPos, QPointF direction);
 
 private:
     int bulletCount;
     QTimer shootTimer;
 };
 
-class SniperRifle : public ItemAttack
+class SniperRifle : public Weapon
 {
 public:
     explicit SniperRifle(int bulletCount);
     ~SniperRifle();
 
-    void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget = nullptr) override;
-    bool use();
+    bool use() override;
+    Bullet* createBullet(QPointF startPos, QPointF direction);
 
 private:
     int bulletCount;

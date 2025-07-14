@@ -13,9 +13,11 @@ public:
     // boundingRect and collideBox has been defined
 
     QImage* getImage();
+    float getSpawnPR() const;
 
 protected:
     QImage *img;
+    float spawnPR;
 };
 
 #endif // ITEM_H

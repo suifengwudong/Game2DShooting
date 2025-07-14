@@ -2,12 +2,14 @@
 #define PLAYER_H
 
 #include "../input/input_manager.h"
-#include "item_base/item_attack.h"
 #include "item_base/item_defend.h"
+#include "weapon/weapon.h"
+#include "weapon/bullet.h"
 #include <QMap>
 #include <QTimer>
 
 class HUD;
+class Bullet; // 前向声明
 
 class Player : public GameObject
 {
@@ -28,6 +30,7 @@ public:
     void crouch();
     void drop();
     void attack(Player* otherPlayer);
+    // void shoot();
 
     bool isOnGround() const;
     void setOnGround(bool value);
@@ -36,7 +39,7 @@ public:
     // status
     QString name;
     int health;
-    ItemAttack* weapon;
+    Weapon* weapon;
     ItemDefend* defense;
 
     HUD* hud;
@@ -45,20 +48,22 @@ public:
 
 signals:
     void healthChanged();
+    void bulletShot(Bullet *bullet);
     void hudStartAttackCDCountingDown();
 
 public slots:
     void onHealthChanged();
+    void onAdrenalineUsed();
 
 private:
+    QImage *proImg;
     bool onGround;
     bool onAttackCD;
     bool facingRight;
     const QList<Qt::Key> *keys;
     QMap<Qt::Key, bool> keyStates;
-    QImage *proImg;
-
     QTimer attackCDTimer;
+    QTimer* adrenalineTimer = nullptr;
 
     void updateWeaponPosition();
 

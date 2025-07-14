@@ -27,11 +27,12 @@
 #define DEFAULT_MAP_DIR "maps"
 #define DEFAULT_MAP_PATH "maps/default_map.txt" // 默认地图路径
 
-// CD CONFIG
-#define ATTACK_CD_TIME 1000 // 1 second
-
 // PLAYER CONFIG
 #define INIT_HEALTH 100
+
+// BULLETS
+#define NORMAL_BULLET 20
+#define SNIPER_BULLET 50
 
 // IMAGE CONFIG
 #define TERRAIN_IMAGE_SIZE 32

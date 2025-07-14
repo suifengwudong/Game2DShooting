@@ -17,9 +17,6 @@ GameScreen::GameScreen(QWidget *parent) : Screen(parent)
     layout->addWidget(gameView);
     layout->setContentsMargins(0, 0, 0, 0);
 
-    gameMap = new Map();
-    gameMap->load();
-
     updateTimer = new QTimer(this);
     connect(updateTimer, &QTimer::timeout, this, &GameScreen::updateGame);
     updateTimer->start(16); // 大约60 FPS
@@ -52,6 +49,8 @@ void GameScreen::initGame() {
     gameView->show();
 
     // paint map
+    gameMap = new Map();
+    gameMap->load();
     // QPixmap pixmap(GAME_WIDTH, GAME_HEIGHT);
     // QPainter painter(&pixmap);
     // gameMap->paint(&painter);
@@ -70,9 +69,12 @@ void GameScreen::initGame() {
     player2->setPos((GAME_WIDTH-player2->boundingRect().width())/2, GAME_HEIGHT-player2->boundingRect().height());
     player2->setVel(QPointF(0, -20));
 
-    // show all player hud
     for (auto player : players) {
         player->hud->show();
+        connect(player, &Player::bulletShot, [this](Bullet* bullet){
+            bullets.append(bullet);
+            gameScene->addItem(bullet);
+        });
     }
 }
 
@@ -90,32 +92,45 @@ void GameScreen::keyReleaseEvent(QKeyEvent *event) {
     QWidget::keyReleaseEvent(event);
 }
 
-void GameScreen::updateGame() {
-    for (Player* player : players) {
-        player->update();
-        player->setOnGround(false); // 默认设为未站在地面
-    }
+void GameScreen::checkCollisionWithTerrain(Player *player) {
+    for (int y = 0; y < gameMap->map.size(); ++y) {
+        for (int x = 0; x < (gameMap->map)[y].size(); ++x) {
+            Terrain* terrain = (gameMap->map)[y][x];
+            if (terrain && terrain->getTypeId() != 0 /* 忽略Null地形 */) {
+                QRectF playerRect = player->boundingRect().translated(player->pos());
+                QRectF terrainRect = terrain->boundingRect().translated(terrain->pos());
 
-    // 处理地形与玩家的碰撞
-    for (Player* player : players) {
-        for (int y = 0; y < gameMap->map.size(); ++y) {
-            for (int x = 0; x < (gameMap->map)[y].size(); ++x) {
-                Terrain* terrain = (gameMap->map)[y][x];
-                if (terrain && terrain->getTypeId() != 0 /* 忽略Null地形 */) {
-                    QRectF playerRect = player->boundingRect().translated(player->pos());
-                    QRectF terrainRect = terrain->boundingRect().translated(terrain->pos());
+                auto physicsEngine = PhysicsEngine::getInstance();
+                if (physicsEngine->checkCollision(player, terrain)) {
+                    physicsEngine->resolveCollision(player, terrain);
+                    // 检查碰撞是否来自上方（玩家站在地形上）
+                    if (playerRect.bottom() >= terrainRect.top() &&
+                        playerRect.bottom() <= terrainRect.top() + 5 /* 阈值 */) {
+                        player->setOnGround(true);
+                    }
+                }
 
-                    if (PhysicsEngine::getInstance()->checkCollision(player, terrain)) {
-                        PhysicsEngine::getInstance()->resolveCollision(player, terrain);
-                        // 检查碰撞是否来自上方（玩家站在地形上）
-                        if (playerRect.bottom() >= terrainRect.top() &&
-                            playerRect.bottom() <= terrainRect.top() + 5 /* 阈值 */) {
-                            player->setOnGround(true);
-                        }
+                // check bullets
+                for (auto bullet : bullets) {
+                    if (physicsEngine->checkCollision(bullet, terrain)) {
+                        gameScene->removeItem(bullet);
+                        bullets.removeOne(bullet);
+                        delete bullet;
                     }
                 }
             }
         }
+    }
+}
+
+void GameScreen::randomSpawnItems() {
+    ;
+}
+
+void GameScreen::updateGame() {
+    for (Player* player : players) {
+        player->update();
+        player->setOnGround(false); // 默认设为未站在地面
     }
 
     // 处理攻击逻辑
@@ -130,4 +145,11 @@ void GameScreen::updateGame() {
             }
         }
     }
+
+    // 处理地形与玩家的碰撞
+    for (Player* player : players) {
+        checkCollisionWithTerrain(player);
+        // qDebug() << player->vel();
+    }
 }
+
