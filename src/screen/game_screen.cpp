@@ -54,11 +54,12 @@ void GameScreen::initGame() {
     // paint map
     gameMap = new Map();
     gameMap->load();
-    // QPixmap pixmap(GAME_WIDTH, GAME_HEIGHT);
-    // QPainter painter(&pixmap);
-    // gameMap->paint(&painter);
-    // painter.end();
-    // gameScene->addPixmap(pixmap);
+    QPixmap pixmap(GAME_WIDTH, GAME_HEIGHT);
+    pixmap.fill(Qt::transparent);
+    QPainter painter(&pixmap);
+    gameMap->paint(&painter);
+    painter.end();
+    gameScene->addPixmap(pixmap);
 
     Player *player1 = new Player("Player1", 10, 10, this);
     players.append(player1);
@@ -96,17 +97,30 @@ void GameScreen::keyReleaseEvent(QKeyEvent *event) {
 }
 
 void GameScreen::checkCollisionWithTerrain(Player *player) {
-    for (int y = 0; y < gameMap->map.size(); ++y) {
-        for (int x = 0; x < (gameMap->map)[y].size(); ++x) {
-            Terrain* terrain = (gameMap->map)[y][x];
+    QRectF playerRect = player->boundingRect().translated(player->pos());
+    // 计算玩家所在的网格范围
+    int minX = static_cast<int>(playerRect.left()) / TERRAIN_WIDTH - 1;
+    int maxX = static_cast<int>(playerRect.right()) / TERRAIN_WIDTH + 1;
+    int minY = static_cast<int>(playerRect.top()) / TERRAIN_HEIGHT - 1;
+    int maxY = static_cast<int>(playerRect.bottom()) / TERRAIN_HEIGHT + 1;
+
+    minX = std::max(0, minX);
+    maxX = std::min(maxX, static_cast<int>(gameMap->map[0].size()) - 1);
+    minY = std::max(0, minY);
+    maxY = std::min(maxY, static_cast<int>(gameMap->map.size()) - 1);
+
+    auto physicsEngine = PhysicsEngine::getInstance();
+
+    // 遍历玩家周围的方块
+    for (int y = minY; y <= maxY; ++y) {
+        for (int x = minX; x <= maxX; ++x) {
+            Terrain* terrain = gameMap->map[y][x];
             if (terrain && terrain->getTypeId() != 0 /* 忽略Null地形 */) {
-                QRectF playerRect = player->boundingRect().translated(player->pos());
                 QRectF terrainRect = terrain->boundingRect().translated(terrain->pos());
 
-                auto physicsEngine = PhysicsEngine::getInstance();
                 if (physicsEngine->checkCollision(player, terrain)) {
                     physicsEngine->resolveCollision(player, terrain);
-                    // 检查碰撞是否来自上方（玩家站在地形上）
+                    // check if is onGround
                     if (playerRect.bottom() >= terrainRect.top() &&
                         playerRect.bottom() <= terrainRect.top() + 5 /* 阈值 */) {
                         player->setOnGround(true);
@@ -133,32 +147,38 @@ void GameScreen::randomSpawnItems() {
         // 随机选择物品类型
         float randomValue = QRandomGenerator::global()->generateDouble();
         float cumulativeProbability = 0;
-        Item* item = nullptr;
+
+        Item* item1 = nullptr;
+        Item* item2 = nullptr;
+        // Item* item3 = nullptr;
+
         if (randomValue < (cumulativeProbability += Knife().getSpawnPR())) {
-            item = new Knife();
+            item1 = new Knife();
         } else if (randomValue < (cumulativeProbability += SolidBall().getSpawnPR())) {
-            item = new SolidBall();
+            item1 = new SolidBall();
         } else if (randomValue < (cumulativeProbability += Rifle(10).getSpawnPR())) {
-            item = new Rifle(10);
+            item1 = new Rifle(10);
         } else if (randomValue < (cumulativeProbability += SniperRifle(5).getSpawnPR())) {
-            item = new SniperRifle(5);
+            item1 = new SniperRifle(5);
         }
+        if (item1) items.append(item1);
 
         cumulativeProbability = 0;
         if (randomValue < (cumulativeProbability += Bandage().getSpawnPR())) {
-            item = new Bandage();
+            item2 = new Bandage();
         } else if (randomValue < (cumulativeProbability += MedKit().getSpawnPR())) {
-            item = new MedKit();
+            item2 = new MedKit();
         } else if (randomValue < (cumulativeProbability += Adrenaline().getSpawnPR())) {
-            item = new Adrenaline();
+            item2 = new Adrenaline();
         }
+        if (item2) items.append(item2);
 
         // cumulativeProbability = 0;
         // if (randomValue < (cumulativeProbability += ItemDefend().getSpawnPR())) {
         //     item = new ItemDefend();
         // }
 
-        if (item) {
+        for (auto item : items) {
             int x = QRandomGenerator::global()->bounded(GAME_WIDTH - item->boundingRect().width());
             int y = 0;
             item->setPos(x, y);
@@ -182,7 +202,7 @@ void GameScreen::randomSpawnItems() {
             fallTimer->start(16); // 大约60 FPS
         }
 
-        // 递归调用，继续随机生成物品
+        // Spawn
         randomSpawnItems();
     });
 }

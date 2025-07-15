@@ -7,15 +7,15 @@ Null::Null() {
 
 Mud::Mud() {
     typeId = 1;
-    loadImage("://terrain/mud.png");
+    img->load("://terrain/mud.png");
 }
 
 Grass::Grass() {
     typeId = 2;
-    loadImage("://terrain/grass.png");
+    img->load("://terrain/grass.png");
 }
 
 Ice::Ice() {
     typeId = 3;
-    loadImage("://terrain/ice.png");
+    img->load("://terrain/ice.png");
 }

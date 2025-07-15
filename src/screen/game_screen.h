@@ -30,6 +30,7 @@ private:
 
     QList<Player*> players;
     QList<Bullet*> bullets;
+    QList<Item*> items;
     Map *gameMap;
 
     void checkCollisionWithTerrain(Player *player);

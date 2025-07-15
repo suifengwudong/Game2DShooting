@@ -10,7 +10,8 @@ public:
     explicit Item();
     ~Item();
 
-    void update() = 0;
+    void update() override;
+    void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget = nullptr) override final;
     // boundingRect and collideBox has been defined
 
     QImage* getImage();

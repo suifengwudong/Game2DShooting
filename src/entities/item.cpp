@@ -1,4 +1,5 @@
 #include "item.h"
+#include <QPainter>
 
 Item::Item() {
     img = new QImage();
@@ -6,6 +7,16 @@ Item::Item() {
 
 Item::~Item() {
     delete img;
+}
+
+void Item::update() {
+    ;
+}
+
+void Item::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) {
+    if (img && !img->isNull()) {
+        painter->drawImage(boundingRect(), *img);
+    }
 }
 
 QImage* Item::getImage() {
@@ -24,15 +35,12 @@ bool Item::isOnGround(Map* gameMap) {
     if (gridY + 1 >= gameMap->map.size()) {
         return false;
     }
+
     // 获取下一行的 Terrain
     Terrain* terrainBelow = gameMap->map[gridY + 1][gridX];
 
     if (terrainBelow && terrainBelow->getTypeId() != 0) {
-        QRectF itemRect = boundingRect().translated(pos());
-        QRectF terrainRect = terrainBelow->boundingRect().translated(terrainBelow->pos());
-
-        auto physicsEngine = PhysicsEngine::getInstance();
-        return physicsEngine->checkCollision(this, terrainBelow);
+        return PhysicsEngine::getInstance()->checkCollision(this, terrainBelow);
     }
 
     return false;

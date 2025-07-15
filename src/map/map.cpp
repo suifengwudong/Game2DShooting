@@ -84,7 +84,7 @@ void Map::paint(QPainter *painter)
 {
     for (int y = 0; y < height; ++y) {
         for (int x = 0; x < width; ++x) {
-            Terrain* terrain = map[y][x];
+            auto terrain = map[y][x];
             if (terrain) {
                 if (terrain->getTypeId() != 0) {  // 0 代表 Null 地形
                     QImage* img = terrain->getImage();

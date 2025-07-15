@@ -14,12 +14,10 @@ public:
     QImage* getImage();
     int getTypeId();
 
-    static void loadImage(const QString& path);
-
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget = nullptr) override final;
 
 protected:
-    static QImage* img;
+    QImage* img;
     int typeId;
 };
 
