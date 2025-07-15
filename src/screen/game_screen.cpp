@@ -1,7 +1,10 @@
 #include "game_screen.h"
+#include "../entities/heal/heal.h"
+#include "../entities/defense/defense.h"
 #include "hud.h"
 #include "config.h"
 #include <QVBoxLayout>
+#include <QRandomGenerator>
 
 GameScreen::GameScreen(QWidget *parent) : Screen(parent)
 {
@@ -124,7 +127,64 @@ void GameScreen::checkCollisionWithTerrain(Player *player) {
 }
 
 void GameScreen::randomSpawnItems() {
-    ;
+    // 随机生成物品的间隔时长，3s - 4s
+    int interval = QRandomGenerator::global()->bounded(3000, 4001);
+    QTimer::singleShot(interval, this, [this]() {
+        // 随机选择物品类型
+        float randomValue = QRandomGenerator::global()->generateDouble();
+        float cumulativeProbability = 0;
+        Item* item = nullptr;
+        if (randomValue < (cumulativeProbability += Knife().getSpawnPR())) {
+            item = new Knife();
+        } else if (randomValue < (cumulativeProbability += SolidBall().getSpawnPR())) {
+            item = new SolidBall();
+        } else if (randomValue < (cumulativeProbability += Rifle(10).getSpawnPR())) {
+            item = new Rifle(10);
+        } else if (randomValue < (cumulativeProbability += SniperRifle(5).getSpawnPR())) {
+            item = new SniperRifle(5);
+        }
+
+        cumulativeProbability = 0;
+        if (randomValue < (cumulativeProbability += Bandage().getSpawnPR())) {
+            item = new Bandage();
+        } else if (randomValue < (cumulativeProbability += MedKit().getSpawnPR())) {
+            item = new MedKit();
+        } else if (randomValue < (cumulativeProbability += Adrenaline().getSpawnPR())) {
+            item = new Adrenaline();
+        }
+
+        // cumulativeProbability = 0;
+        // if (randomValue < (cumulativeProbability += ItemDefend().getSpawnPR())) {
+        //     item = new ItemDefend();
+        // }
+
+        if (item) {
+            int x = QRandomGenerator::global()->bounded(GAME_WIDTH - item->boundingRect().width());
+            int y = 0;
+            item->setPos(x, y);
+
+            PhysicsEngine::getInstance()->applyGravity(item);
+            gameScene->addItem(item);
+
+            QTimer* fallTimer = new QTimer(this);
+            connect(fallTimer, &QTimer::timeout, [this, item, fallTimer]() {
+                item->update();
+
+                if (item->isOnGround(gameMap)) {
+                    fallTimer->stop();
+                    // 掉落到地板上后，一段时间后消失（5s）
+                    QTimer::singleShot(5000, [this, item]() {
+                        gameScene->removeItem(item);
+                        delete item;
+                    });
+                }
+            });
+            fallTimer->start(16); // 大约60 FPS
+        }
+
+        // 递归调用，继续随机生成物品
+        randomSpawnItems();
+    });
 }
 
 void GameScreen::updateGame() {

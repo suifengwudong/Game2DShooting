@@ -9,6 +9,7 @@ public:
     explicit ItemDefend();
 
     void update() override;
+    void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget = nullptr) override final;
 };
 
 #endif // ITEM_DEFEND_H

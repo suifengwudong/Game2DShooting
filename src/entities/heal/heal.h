@@ -8,6 +8,7 @@ class Bandage : public ItemHeal
 {
 public:
     explicit Bandage();
+    ~Bandage();
 
     void use(Player* player) override;
 };
@@ -16,6 +17,7 @@ class MedKit : public ItemHeal
 {
 public:
     explicit MedKit();
+    ~MedKit();
 
     void use(Player* player) override;
 };
@@ -24,6 +26,7 @@ class Adrenaline : public ItemHeal
 {
 public:
     explicit Adrenaline();
+    ~Adrenaline();
 
     void use(Player* player) override;
 
@@ -33,6 +36,7 @@ signals:
 private:
     int effectDuration;
     int tickInterval;
+    int usage;
     QTimer* adrenalineTimer;
 };
 

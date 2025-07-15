@@ -10,6 +10,7 @@ public:
     explicit ItemHeal();
 
     void update() override;
+    void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget = nullptr) override final;
 
     virtual void use(Player* player) = 0;
 

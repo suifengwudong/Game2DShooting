@@ -55,3 +55,9 @@ QRectF GameObject::reactionRangeRect() const {
 bool GameObject::isMovable() const {
     return movable;
 }
+
+QPointF GameObject::positionToGrid(const QPointF &pos) const {
+    int x = static_cast<int>(pos.x()) / TERRAIN_WIDTH;
+    int y = static_cast<int>(pos.y()) / TERRAIN_HEIGHT;
+    return QPointF(x, y);
+}

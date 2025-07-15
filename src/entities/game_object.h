@@ -29,6 +29,9 @@ public:
     // isMovable
     bool isMovable() const;
 
+    // point to grid
+    QPointF positionToGrid(const QPointF &pos) const;
+
 protected:
     QPointF m_vel;
     bool movable;

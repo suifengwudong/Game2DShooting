@@ -2,6 +2,7 @@
 #define ITEM_H
 
 #include "game_object.h"
+#include "../map/map.h"
 
 class Item : public GameObject
 {
@@ -14,6 +15,8 @@ public:
 
     QImage* getImage();
     float getSpawnPR() const;
+
+    bool isOnGround(Map* map);
 
 protected:
     QImage *img;

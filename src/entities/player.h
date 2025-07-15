@@ -53,7 +53,7 @@ signals:
 
 public slots:
     void onHealthChanged();
-    void onAdrenalineUsed();
+    // void onAdrenalineUsed();
 
 private:
     QImage *proImg;
