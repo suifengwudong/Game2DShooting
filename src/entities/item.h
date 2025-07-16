@@ -7,7 +7,7 @@
 class Item : public GameObject
 {
 public:
-    explicit Item();
+    explicit Item(bool imagable = true, const QString& itemName = "");
     ~Item();
 
     void update() override;
@@ -15,13 +15,16 @@ public:
     // boundingRect and collideBox has been defined
 
     QImage* getImage();
-    float getSpawnPR() const;
+    void loadImage();
+
+    qreal getSpawnPR() const;
 
     bool isOnGround(Map* map);
 
 protected:
     QImage *img;
-    float spawnPR;
+    QString name;
+    qreal spawnPR;
 };
 
 #endif // ITEM_H

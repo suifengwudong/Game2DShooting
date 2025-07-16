@@ -22,10 +22,6 @@ public:
     QPointF vel() const;
     void setVel(const QPointF newvel);
 
-    // reactive range
-    void setReactionRange(qreal range);
-    QRectF reactionRangeRect() const;
-
     // isMovable
     bool isMovable() const;
 
@@ -33,10 +29,10 @@ public:
     QPointF positionToGrid(const QPointF &pos) const;
 
 protected:
-    QPointF m_vel;
     bool movable;
     QRectF collideBox;
-    qreal m_reactionRange;
+
+    QPointF m_vel;
 };
 
 #endif // GAME_OBJECT_H

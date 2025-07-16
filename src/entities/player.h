@@ -30,11 +30,13 @@ public:
     void crouch();
     void drop();
     void attack(Player* otherPlayer);
+    void pick(Item* item);
     // void shoot();
 
     bool isOnGround() const;
+    bool isPicking() const;
     void setOnGround(bool value);
-    bool isAttacked() const;
+    bool isAttacking() const;
 
     // status
     QString name;

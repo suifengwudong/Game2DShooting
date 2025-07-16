@@ -6,7 +6,7 @@
 class ItemDefend : public Item
 {
 public:
-    explicit ItemDefend();
+    explicit ItemDefend(bool imagable = true, const QString& itemName = "");;
 
     void update() override;
 };

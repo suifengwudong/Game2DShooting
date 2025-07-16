@@ -1,8 +1,10 @@
 #include "item.h"
 #include <QPainter>
 
-Item::Item() {
+Item::Item(bool imagable, const QString& itemName) :
+    name(itemName) {
     img = new QImage();
+    if (imagable) loadImage();
 }
 
 Item::~Item() {
@@ -17,13 +19,23 @@ void Item::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWid
     if (img && !img->isNull()) {
         painter->drawImage(boundingRect(), *img);
     }
+    qDebug() << boundingRect();
 }
 
 QImage* Item::getImage() {
     return img;
 }
 
-float Item::getSpawnPR() const {
+void Item::loadImage() {
+    QString path = ":/img/entities/" + name + ".png";
+    if (!img->load(path)) {
+        qDebug() << name << " failed to load";
+    } else {
+        qDebug() << name << " succeeded to load";
+    }
+}
+
+qreal Item::getSpawnPR() const {
     return spawnPR;
 }
 

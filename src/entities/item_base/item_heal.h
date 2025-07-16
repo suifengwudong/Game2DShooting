@@ -7,7 +7,7 @@
 class ItemHeal : public Item
 {
 public:
-    explicit ItemHeal();
+    explicit ItemHeal(bool imagable = true, const QString& itemName = "");
 
     void update() override;
 

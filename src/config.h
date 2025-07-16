@@ -36,12 +36,5 @@
 
 // IMAGE CONFIG
 #define TERRAIN_IMAGE_SIZE 32
-#define TERRAIN_NULL_IMAGE_PATH ""
-#define TERRAIN_MUD_IMAGE_PATH "://terrain/mud.png"
-#define TERRAIN_GRASS_IMAGE_PATH "://terrain/grass.png"
-#define TERRAIN_ICE_IMAGE_PATH "://terrain/ice.png"
-#define PLAYER_DEFAULT_IMAGE_PATH "://entities/player_default.png"
-#define FIST_IMAGE_PATH "://entities/fist.png"
-#define SHIRT_IMAGE_PATH "://entities/shirt.png"
 
 #endif // CONFIG_H

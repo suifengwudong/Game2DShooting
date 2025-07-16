@@ -15,15 +15,16 @@ private:
 
 public:
     static PhysicsEngine* getInstance();
-    void applyGravity(GameObject* object);
+    void applyGravity(GameObject* object, qreal gravity = m_gravity);
+    void applyFriction(GameObject* object, qreal friction = m_friction);
     bool checkCollision(GameObject* obj1, GameObject* obj2);
-    void resolveCollision(GameObject* obj1, GameObject* obj2, float elasticity = 1.0f);
-    // void inresolveCollision(GameObject* player, GameObject* terrain);
+    void handleCollisionResolution(GameObject* obj1, GameObject* obj2, qreal elasticity = 1.0f);
+    qreal distance(GameObject* obj1, GameObject* obj2);
 
 private:
-    const float gravity = 0.5f;
-    const float terminalVelocity = 15.0f;
-    // const float elasticity = 0.8f;
+    static constexpr qreal m_gravity = 0.5f;
+    static constexpr qreal m_friction = 0.5f;
+    const qreal terminalVelocity = 15.0f;
 };
 
 #endif // PHYSICS_ENGINE_H

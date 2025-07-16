@@ -3,15 +3,17 @@
 #include <QDebug>
 #include <QTimer>
 
+Weapon::Weapon(const QString& weaponName) :
+    ItemAttack(true, weaponName) {}
+
 /* FIST */
-Fist::Fist() {
+Fist::Fist() :
+    Weapon("fist")
+{
     harm = 5;
     attackCD = 1000;
     spawnPR = 0;
     collideBox = QRectF(0, 0, 10, 10);
-    if (!img->load("://entities/fist.png")) {
-        qDebug() << "Failed to load fist image";
-    }
 }
 
 Fist::~Fist() {}
@@ -21,14 +23,12 @@ bool Fist::use() {
 }
 
 /* KNIFE */
-Knife::Knife() {
+Knife::Knife() :
+    Weapon("knife") {
     harm = 8;
     attackCD = 1000;
     spawnPR = 0.2;
     collideBox = QRectF(0, 0, 15, 5);
-    if (!img->load("://entities/knife.png")) {
-        qDebug() << "Failed to load knife image";
-    }
 }
 
 Knife::~Knife() {}
@@ -38,14 +38,14 @@ bool Knife::use() {
 }
 
 /* SOLIDBALL */
-SolidBall::SolidBall() {
+SolidBall::SolidBall() :
+    Weapon("solidball")
+{
     harm = 10;
+    name = "solidball";
     attackCD = 1000;
     spawnPR = 0.1;
     collideBox = QRectF(0, 0, 8, 8);
-    if (!img->load("://entities/solid_ball.png")) {
-        qDebug() << "Failed to load solid ball image";
-    }
 }
 
 SolidBall::~SolidBall() {}
@@ -55,15 +55,14 @@ bool SolidBall::use() {
 }
 
 /* RIFLE */
-Rifle::Rifle(int bulletCount) : bulletCount(bulletCount) {
+Rifle::Rifle(int bulletCount) :
+    Weapon("rifle"), bulletCount(bulletCount)
+{
     harm = 15;
     attackCD = 1000;
     spawnPR = 0.15;
     collideBox = QRectF(0, 0, 5, 2);
-    if (!img->load("://entities/rifle.png")) {
-        qDebug() << "Failed to load rifle image";
-    }
-    shootTimer.setInterval(100); // 射击间隔
+    shootTimer.setInterval(100);
 }
 
 Rifle::~Rifle() {}
@@ -79,18 +78,17 @@ bool Rifle::use() {
 
 Bullet* Rifle::createBullet(QPointF startPos, QPointF direction) {
     QPointF velocity = direction * 10; // 子弹速度
-    return new Bullet(startPos, velocity, harm, this);
+    return new Bullet(startPos, velocity, harm);
 }
 
 /* SNIPER RIFLE */
-SniperRifle::SniperRifle(int bulletCount) : bulletCount(bulletCount) {
+SniperRifle::SniperRifle(int bulletCount) :
+    Weapon("sniper_rifle"), bulletCount(bulletCount)
+{
     harm = 50;
     attackCD = 1000;
     spawnPR = 0.05;
     collideBox = QRectF(0, 0, 8, 3);
-    if (!img->load("://entities/sniper_rifle.png")) {
-        qDebug() << "Failed to load sniper rifle image";
-    }
     shootTimer.setInterval(1000); // 射击间隔
 }
 
@@ -107,5 +105,5 @@ bool SniperRifle::use() {
 
 Bullet* SniperRifle::createBullet(QPointF startPos, QPointF direction) {
     QPointF velocity = direction * 10; // 子弹速度
-    return new Bullet(startPos, velocity, harm, this);
+    return new Bullet(startPos, velocity, harm);
 }

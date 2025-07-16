@@ -1,5 +1,5 @@
 <RCC>
-    <qresource prefix="/">
+    <qresource prefix="/img">
         <file>entities/fist.png</file>
         <file>entities/knife.png</file>
         <file>entities/player_default.png</file>
@@ -8,5 +8,8 @@
         <file>terrain/ice.png</file>
         <file>terrain/mud.png</file>
         <file>entities/shirt.png</file>
+        <file>entities/adrenaline.png</file>
+        <file>entities/bandage.png</file>
+        <file>entities/medkit.png</file>
     </qresource>
 </RCC>

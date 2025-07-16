@@ -1,9 +1,10 @@
 #include "game_object.h"
 #include "config.h"
 #include "../physics/physics_engine.h"
+#include "player.h"
 
 GameObject::GameObject(bool movable) :
-    movable(movable), m_reactionRange(0) // TODO: real reactive range
+    movable(movable)
 {}
 
 GameObject::~GameObject() {}
@@ -19,7 +20,16 @@ void GameObject::setVel(const QPointF newvel) {
 void GameObject::update() {
     if (!movable) return;
 
-    PhysicsEngine::getInstance()->applyGravity(this);
+    auto physicsEngine = PhysicsEngine::getInstance();
+    auto player = dynamic_cast<Player*>(this);
+
+    if (player && player->isOnGround()) {
+        physicsEngine->applyFriction(this);
+    } else {
+        physicsEngine->applyGravity(this);
+        physicsEngine->applyFriction(this);
+    }
+
     setPos(pos() + m_vel);
 
     // margin check
@@ -40,16 +50,6 @@ void GameObject::update() {
 
 QRectF GameObject::boundingRect() const {
     return collideBox;
-}
-
-void GameObject::setReactionRange(qreal range) {
-    m_reactionRange = range;
-}
-
-QRectF GameObject::reactionRangeRect() const {
-    return QRectF(pos().x() - m_reactionRange, pos().y() - m_reactionRange,
-                  boundingRect().width() + 2 * m_reactionRange,
-                  boundingRect().height() + 2 * m_reactionRange);
 }
 
 bool GameObject::isMovable() const {

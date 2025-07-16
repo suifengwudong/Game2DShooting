@@ -3,6 +3,7 @@
 #include "../screen/hud.h"
 #include "weapon/weapon.h"
 #include "defense/defense.h"
+#include "heal/heal.h"
 #include <QPainter>
 
 Player::Player(QString const playerName, int ax, int ay, QWidget *parent) :
@@ -14,7 +15,7 @@ Player::Player(QString const playerName, int ax, int ay, QWidget *parent) :
     setFocus();
     onGround = false;
     proImg = new QImage();
-    if (!proImg->load("://entities/player_default.png")){
+    if (!proImg->load(":/img/entities/player_default.png")){
         qDebug() << "Failed to load player image";
     }
 
@@ -112,8 +113,11 @@ void Player::jump() {
     setVel(m_vel);
 }
 
-void Player::crouch(){
-    ;
+void Player::crouch() {
+    // keyStates locked
+    // keyStates[keys->at(0)] = false;
+    // keyStates[keys->at(1)] = false;
+    // keyStates[keys->at(3)] = false;
 }
 
 void Player::drop() {
@@ -134,11 +138,19 @@ void Player::attack(Player* otherPlayer) {
                 otherPlayer->health -= weapon->getHarm();
                 otherPlayer->setVel(vel() + vec);
                 otherPlayer->onHealthChanged();
+
+                onAttackCD = true;
+                attackCDTimer.start(weapon->getAttackCD());  // Set attack CD
+                emit hudStartAttackCDCountingDown();
             }
         } else if (dynamic_cast<Knife*>(weapon)) {
             if (PhysicsEngine::getInstance()->checkCollision(otherPlayer, weapon)) {
                 otherPlayer->health -= weapon->getHarm();
                 otherPlayer->onHealthChanged();
+
+                onAttackCD = true;
+                attackCDTimer.start(weapon->getAttackCD());  // Set attack CD
+                emit hudStartAttackCDCountingDown();
             }
         } else {
             if (dynamic_cast<SolidBall*>(weapon)) {
@@ -150,20 +162,23 @@ void Player::attack(Player* otherPlayer) {
             } else if (dynamic_cast<Rifle*>(weapon)) {
                 Bullet* bullet;
                 if (facingRight) {
-                    bullet = new Bullet(pos(), QPointF(5, 0), NORMAL_BULLET, weapon);
+                    bullet = new Bullet(pos(), QPointF(5, 0), NORMAL_BULLET);
                 } else {
-                    bullet = new Bullet(pos(), QPointF(-5, 0), NORMAL_BULLET, weapon);
+                    bullet = new Bullet(pos(), QPointF(-5, 0), NORMAL_BULLET);
                 }
                 emit bulletShot(bullet);
             } else if (dynamic_cast<SniperRifle*>(weapon)) {
                 Bullet* bullet;
                 if (facingRight) {
-                    bullet = new Bullet(pos(), QPointF(5, 0), SNIPER_BULLET, weapon);
+                    bullet = new Bullet(pos(), QPointF(5, 0), SNIPER_BULLET);
                 } else {
-                    bullet = new Bullet(pos(), QPointF(-5, 0), SNIPER_BULLET, weapon);
+                    bullet = new Bullet(pos(), QPointF(-5, 0), SNIPER_BULLET);
                 }
                 emit bulletShot(bullet);
             }
+            onAttackCD = true;
+            attackCDTimer.start(weapon->getAttackCD());  // Set attack CD
+            emit hudStartAttackCDCountingDown();
         }
 
         if (!weapon->use()) {
@@ -171,10 +186,17 @@ void Player::attack(Player* otherPlayer) {
             weapon = new Fist();
             hud->setWeaponImage(weapon->getImage());
         }
+    }
+}
 
-        onAttackCD = true;
-        attackCDTimer.start(weapon->getAttackCD());  // Set attack CD
-        emit hudStartAttackCDCountingDown();
+void Player::pick(Item* item) {
+    if (dynamic_cast<ItemAttack*>(item)) {
+        hud->setWeaponImage(item->getImage());
+    } else if (dynamic_cast<ItemDefend*>(item)) {
+        hud->setDefenseImage(item->getImage());
+    } else if (dynamic_cast<ItemHeal*>(item)) {
+        auto healing = static_cast<ItemHeal*>(item);
+        healing->use(this);
     }
 }
 
@@ -182,11 +204,15 @@ bool Player::isOnGround() const {
     return onGround;
 }
 
+bool Player::isPicking() const {
+    return keyStates[keys->at(2)];
+}
+
 void Player::setOnGround(bool value) {
     onGround = value;
 }
 
-bool Player::isAttacked() const {
+bool Player::isAttacking() const {
     return keyStates[keys->at(4)];
 }
 

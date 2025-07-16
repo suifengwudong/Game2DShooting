@@ -1,6 +1,7 @@
 #include "item_attack.h"
 
-ItemAttack::ItemAttack() {}
+ItemAttack::ItemAttack(bool imagable, const QString& itemName) :
+    Item(imagable, itemName) {}
 
 void ItemAttack::update() {}
 

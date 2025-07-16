@@ -6,7 +6,7 @@
 class ItemAttack : public Item
 {
 public:
-    explicit ItemAttack();
+    explicit ItemAttack(bool imagable = true, const QString& itemName = "");;
 
     void update() override;
 

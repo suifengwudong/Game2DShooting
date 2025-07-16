@@ -23,11 +23,16 @@ GameScreen::GameScreen(QWidget *parent) : Screen(parent)
     updateTimer = new QTimer(this);
     connect(updateTimer, &QTimer::timeout, this, &GameScreen::updateGame);
     updateTimer->start(16); // 大约60 FPS
+
+    spawnTimer = new QTimer(this);
 }
 
 GameScreen::~GameScreen() {
     if (updateTimer) {
         updateTimer->stop();
+    }
+    if (spawnTimer) {
+        spawnTimer->stop();
     }
 
     for (Player* player : players) {
@@ -38,6 +43,7 @@ GameScreen::~GameScreen() {
     delete gameMap;
 
     delete updateTimer;
+    delete spawnTimer;
 }
 
 void GameScreen::initGame() {
@@ -80,6 +86,16 @@ void GameScreen::initGame() {
             gameScene->addItem(bullet);
         });
     }
+
+    int interval = QRandomGenerator::global()->bounded(3000, 4001);
+    spawnTimer->singleShot(interval, this, [this]() {
+        randomSpawnItems();
+        // 继续下一次生成
+        int nextInterval = QRandomGenerator::global()->bounded(3000, 4001);
+        spawnTimer->singleShot(nextInterval, this, [this]() {
+            randomSpawnItems();
+        });
+    });
 }
 
 void GameScreen::keyPressEvent(QKeyEvent *event) {
@@ -99,10 +115,10 @@ void GameScreen::keyReleaseEvent(QKeyEvent *event) {
 void GameScreen::checkCollisionWithTerrain(Player *player) {
     QRectF playerRect = player->boundingRect().translated(player->pos());
     // 计算玩家所在的网格范围
-    int minX = static_cast<int>(playerRect.left()) / TERRAIN_WIDTH - 1;
-    int maxX = static_cast<int>(playerRect.right()) / TERRAIN_WIDTH + 1;
-    int minY = static_cast<int>(playerRect.top()) / TERRAIN_HEIGHT - 1;
-    int maxY = static_cast<int>(playerRect.bottom()) / TERRAIN_HEIGHT + 1;
+    int minX = static_cast<int>(playerRect.left() / TERRAIN_WIDTH) - 1;
+    int maxX = static_cast<int>(playerRect.right() / TERRAIN_WIDTH) + 1;
+    int minY = static_cast<int>(playerRect.top() / TERRAIN_HEIGHT) - 1;
+    int maxY = static_cast<int>(playerRect.bottom() / TERRAIN_HEIGHT) + 1;
 
     minX = std::max(0, minX);
     maxX = std::min(maxX, static_cast<int>(gameMap->map[0].size()) - 1);
@@ -116,16 +132,7 @@ void GameScreen::checkCollisionWithTerrain(Player *player) {
         for (int x = minX; x <= maxX; ++x) {
             Terrain* terrain = gameMap->map[y][x];
             if (terrain && terrain->getTypeId() != 0 /* 忽略Null地形 */) {
-                QRectF terrainRect = terrain->boundingRect().translated(terrain->pos());
-
-                if (physicsEngine->checkCollision(player, terrain)) {
-                    physicsEngine->resolveCollision(player, terrain);
-                    // check if is onGround
-                    if (playerRect.bottom() >= terrainRect.top() &&
-                        playerRect.bottom() <= terrainRect.top() + 5 /* 阈值 */) {
-                        player->setOnGround(true);
-                    }
-                }
+                physicsEngine->handleCollisionResolution(player, terrain);
 
                 // check bullets
                 for (auto bullet : bullets) {
@@ -141,95 +148,108 @@ void GameScreen::checkCollisionWithTerrain(Player *player) {
 }
 
 void GameScreen::randomSpawnItems() {
-    // 随机生成物品的间隔时长，3s - 4s
-    int interval = QRandomGenerator::global()->bounded(3000, 4001);
-    QTimer::singleShot(interval, this, [this]() {
-        // 随机选择物品类型
-        float randomValue = QRandomGenerator::global()->generateDouble();
-        float cumulativeProbability = 0;
+    // 随机选择物品类型
+    qreal randomValue = QRandomGenerator::global()->generateDouble();
+    qreal cumulativeProbability = 0;
 
-        Item* item1 = nullptr;
-        Item* item2 = nullptr;
-        // Item* item3 = nullptr;
+    Item* item1 = nullptr;
+    Item* item2 = nullptr;
+    // Item* item3 = nullptr;
 
-        if (randomValue < (cumulativeProbability += Knife().getSpawnPR())) {
-            item1 = new Knife();
-        } else if (randomValue < (cumulativeProbability += SolidBall().getSpawnPR())) {
-            item1 = new SolidBall();
-        } else if (randomValue < (cumulativeProbability += Rifle(10).getSpawnPR())) {
-            item1 = new Rifle(10);
-        } else if (randomValue < (cumulativeProbability += SniperRifle(5).getSpawnPR())) {
-            item1 = new SniperRifle(5);
-        }
-        if (item1) items.append(item1);
+    if (randomValue < (cumulativeProbability += Knife().getSpawnPR())) {
+        item1 = new Knife();
+    } else if (randomValue < (cumulativeProbability += SolidBall().getSpawnPR())) {
+        item1 = new SolidBall();
+    } else if (randomValue < (cumulativeProbability += Rifle(10).getSpawnPR())) {
+        item1 = new Rifle(10);
+    } else if (randomValue < (cumulativeProbability += SniperRifle(5).getSpawnPR())) {
+        item1 = new SniperRifle(5);
+    }
+    if (item1) items.append(item1);
 
-        cumulativeProbability = 0;
-        if (randomValue < (cumulativeProbability += Bandage().getSpawnPR())) {
-            item2 = new Bandage();
-        } else if (randomValue < (cumulativeProbability += MedKit().getSpawnPR())) {
-            item2 = new MedKit();
-        } else if (randomValue < (cumulativeProbability += Adrenaline().getSpawnPR())) {
-            item2 = new Adrenaline();
-        }
-        if (item2) items.append(item2);
+    cumulativeProbability = 0;
+    if (randomValue < (cumulativeProbability += Bandage().getSpawnPR())) {
+        item2 = new Bandage();
+    } else if (randomValue < (cumulativeProbability += MedKit().getSpawnPR())) {
+        item2 = new MedKit();
+    } else if (randomValue < (cumulativeProbability += Adrenaline().getSpawnPR())) {
+        item2 = new Adrenaline();
+    }
+    if (item2) items.append(item2);
 
-        // cumulativeProbability = 0;
-        // if (randomValue < (cumulativeProbability += ItemDefend().getSpawnPR())) {
-        //     item = new ItemDefend();
-        // }
+    // cumulativeProbability = 0;
+    // if (randomValue < (cumulativeProbability += ItemDefend().getSpawnPR())) {
+    //     item = new ItemDefend();
+    // }
 
-        for (auto item : items) {
-            int x = QRandomGenerator::global()->bounded(GAME_WIDTH - item->boundingRect().width());
-            int y = 0;
-            item->setPos(x, y);
+    for (auto item : items) {
+        int x = QRandomGenerator::global()->bounded(GAME_WIDTH - item->boundingRect().width());
+        int y = 0;
+        item->setPos(x, y);
 
-            PhysicsEngine::getInstance()->applyGravity(item);
-            gameScene->addItem(item);
+        PhysicsEngine::getInstance()->applyGravity(item);
+        gameScene->addItem(item);
 
-            QTimer* fallTimer = new QTimer(this);
-            connect(fallTimer, &QTimer::timeout, [this, item, fallTimer]() {
-                item->update();
+        QTimer* fallTimer = new QTimer(this);
+        connect(fallTimer, &QTimer::timeout, [this, item, fallTimer]() {
+            item->update();
 
-                if (item->isOnGround(gameMap)) {
-                    fallTimer->stop();
-                    // 掉落到地板上后，一段时间后消失（5s）
-                    QTimer::singleShot(5000, [this, item]() {
-                        gameScene->removeItem(item);
-                        delete item;
-                    });
-                }
-            });
-            fallTimer->start(16); // 大约60 FPS
-        }
-
-        // Spawn
-        randomSpawnItems();
-    });
+            if (item->isOnGround(gameMap)) {
+                fallTimer->stop();
+                // 掉落到地板上后，一段时间后消失（5s）
+                QTimer::singleShot(5000, [this, item]() {
+                    gameScene->removeItem(item);
+                    delete item;
+                });
+            }
+        });
+        fallTimer->start(16); // 大约60 FPS
+    }
 }
 
 void GameScreen::updateGame() {
     for (Player* player : players) {
+        // update player and status
         player->update();
-        player->setOnGround(false); // 默认设为未站在地面
+        player->setOnGround(false);
     }
 
-    // 处理攻击逻辑
-    for (Player* attacker : players) {
-        if (attacker->isAttacked()) {
-            // 获取攻击者的响应范围
-            QRectF reactionRange = attacker->reactionRangeRect();
+    for (Player* player : players) {
+        // attacks
+        if (player->isAttacking()) {
             for (Player* defender : players) {
-                if (defender != attacker && reactionRange.intersects(defender->boundingRect().translated(defender->pos()))) {
-                    attacker->attack(defender);
+                if (defender != player) {
+                    player->attack(defender);
                 }
+            }
+        }
+
+        // pick items
+        // if (player->isPicking()) {
+        //     for (Item* item: items) {
+        //         if (PhysicsEngine::getInstance()->distance(player, item) < 100) {
+        //             player->pick(item);
+        //         }
+        //     }
+        // }
+    }
+
+    for (auto bullet : bullets) {
+        // update bullet
+        bullet->update();
+
+        // check player and bullet collision
+        for (auto player : players) {
+            if (PhysicsEngine::getInstance()->checkCollision(player, bullet)) {
+                bullet->use(player);
             }
         }
     }
 
-    // 处理地形与玩家的碰撞
     for (Player* player : players) {
+        // check collision with terrains
         checkCollisionWithTerrain(player);
-        // qDebug() << player->vel();
     }
+
 }
 

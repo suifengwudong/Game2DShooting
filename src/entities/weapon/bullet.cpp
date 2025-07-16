@@ -1,8 +1,8 @@
 #include "bullet.h"
-#include "../../physics/physics_engine.h"
-#include "../../screen/game_screen.h"
+#include "../player.h"
 
-Bullet::Bullet(QPointF startPos, QPointF velocity, int m_harm, Weapon* parent)
+Bullet::Bullet(QPointF startPos, QPointF velocity, int m_harm) :
+    ItemAttack(false, "bullet")
 {
     harm = m_harm;
     setPos(startPos);
@@ -14,11 +14,10 @@ Bullet::~Bullet() {}
 
 void Bullet::update()
 {
-    setPos(pos() + m_vel);
+    GameObject::update();
+}
 
-    // 检查子弹是否超出游戏边界，如果是则删除子弹
-    if (pos().x() < 0 || pos().x() > GAME_WIDTH || pos().y() < 0 || pos().y() > GAME_HEIGHT) {
-        delete this;
-        return;
-    }
+void Bullet::use(Player* player) {
+    player->health -= harm;
+    player->onHealthChanged();
 }

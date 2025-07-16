@@ -27,6 +27,7 @@ private:
     QGraphicsScene *gameScene;
     QGraphicsView *gameView;
     QTimer *updateTimer;
+    QTimer *spawnTimer;
 
     QList<Player*> players;
     QList<Bullet*> bullets;

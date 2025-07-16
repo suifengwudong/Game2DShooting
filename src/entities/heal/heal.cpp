@@ -1,6 +1,6 @@
 #include "heal.h"
 
-Bandage::Bandage() {
+Bandage::Bandage() : ItemHeal(true, "bandage") {
     healHealth = 10;
     spawnPR = 0.2;
 }
@@ -12,7 +12,7 @@ void Bandage::use(Player* player) {
     player->onHealthChanged();
 }
 
-MedKit::MedKit() {
+MedKit::MedKit() : ItemHeal(true, "medkit") {
     healHealth = 100;
     spawnPR = 0.1;
 }
@@ -24,7 +24,7 @@ void MedKit::use(Player* player) {
     player->onHealthChanged();
 }
 
-Adrenaline::Adrenaline() {
+Adrenaline::Adrenaline() : ItemHeal(true, "adrenaline") {
     healHealth = 10;
     spawnPR = 0.1;
     effectDuration = 5000;

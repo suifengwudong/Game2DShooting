@@ -143,13 +143,13 @@ void MapEditorScreen::drawMap()
                     QString path;
                     switch (terrain->getTypeId()) {
                     case 1:
-                        path = TERRAIN_MUD_IMAGE_PATH;
+                        path = ":/img/terrain/mud.png";
                         break;
                     case 2:
-                        path = TERRAIN_GRASS_IMAGE_PATH;
+                        path = ":/img/terrain/grass.png";
                         break;
                     case 3:
-                        path = TERRAIN_ICE_IMAGE_PATH;
+                        path = ":/img/terrain/ice.png";
                         break;
                     default:
                         path = "";
@@ -205,10 +205,10 @@ void MapEditorScreen::setupTerrainSelection()
     terrainButtonGroup = new QButtonGroup(this);
     QHBoxLayout *mainLayout = new QHBoxLayout();
 
-    createTerrainButtonAndView("Null", 0, TERRAIN_NULL_IMAGE_PATH, terrainButtonGroup, mainLayout);
-    createTerrainButtonAndView("Mud", 1, TERRAIN_MUD_IMAGE_PATH, terrainButtonGroup, mainLayout);
-    createTerrainButtonAndView("Grass", 2, TERRAIN_GRASS_IMAGE_PATH, terrainButtonGroup, mainLayout);
-    createTerrainButtonAndView("Ice", 3, TERRAIN_ICE_IMAGE_PATH, terrainButtonGroup, mainLayout);
+    createTerrainButtonAndView("Null", 0, "", terrainButtonGroup, mainLayout);
+    createTerrainButtonAndView("Mud", 1, ":/img/terrain/mud.png", terrainButtonGroup, mainLayout);
+    createTerrainButtonAndView("Grass", 2, ":/img/terrain/grass.png", terrainButtonGroup, mainLayout);
+    createTerrainButtonAndView("Ice", 3, ":/img/terrain/ice.png", terrainButtonGroup, mainLayout);
 
     // 添加弹簧项以实现水平均布
     mainLayout->addStretch(1);
