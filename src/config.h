@@ -1,0 +1,42 @@
+#ifndef CONFIG_H
+#define CONFIG_H
+
+#define GAME_NAME "BiuBiuBiu v1.0"
+
+// GAME CONFIG
+#define START_WIDTH 250
+#define START_HEIGHT 400
+// ensure the game width and height are multiples of TERRAIN_WIDTH and TERRAIN_HEIGHT
+#define GAME_WIDTH 810
+#define GAME_HEIGHT 540
+#define SETTINGS_WIDTH 365
+#define SETTINGS_HEIGHT 360
+
+// DISPLAY CONFIG
+#define HUD_WIDTH 380
+#define HUD_HEIGHT 70
+
+// ENTITY CONFIG
+#define PLAYER_WIDTH 60
+#define PLAYER_HEIGHT 80
+#define TERRAIN_WIDTH 30
+#define TERRAIN_HEIGHT TERRAIN_WIDTH
+
+// MAP AND GRID CONFIG
+#define LARGE_GRID_SIZE 120
+#define SMALL_GRID_SIZE 30
+#define DEFAULT_MAP_DIR "maps"
+#define DEFAULT_MAP_PATH "maps/default_map.txt" // 默认地图路径
+
+// PLAYER CONFIG
+#define INIT_HEALTH 100
+#define MAX_HEALTH 100
+
+// BULLETS
+#define NORMAL_BULLET 20
+#define SNIPER_BULLET 50
+
+// IMAGE CONFIG
+#define TERRAIN_IMAGE_SIZE 32
+
+#endif // CONFIG_H
