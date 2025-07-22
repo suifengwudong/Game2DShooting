@@ -11,6 +11,8 @@ Player::Player(QString const playerName, int ax, int ay, QWidget *parent) :
     GameObject(true), name(playerName), health(INIT_HEALTH), facingRight(true)
 {
     collideBox = QRectF(0, 0, PLAYER_WIDTH, PLAYER_HEIGHT);
+    setTerminalVelocityX(10.0f);
+    setTerminalVelocityY(15.0f);
     keys = InputManager::allocateKeyMap(this)->getKeyMap();
     setFlag(QGraphicsItem::ItemIsFocusable);
     setFocus();
@@ -114,15 +116,9 @@ void Player::jump() {
 
 void Player::crouch() {
     // keyStates locked
-<<<<<<< HEAD
     keyStates[keys->at(0)] = false;
     keyStates[keys->at(1)] = false;
     keyStates[keys->at(3)] = false;
-=======
-    // keyStates[keys->at(0)] = false;
-    // keyStates[keys->at(1)] = false;
-    // keyStates[keys->at(3)] = false;
->>>>>>> 8001155888255e3d75e247fdefe8e84431b38991
 }
 
 void Player::drop() {
@@ -131,62 +127,64 @@ void Player::drop() {
 
 void Player::attack(Player* otherPlayer) {
     if (otherPlayer && !onAttackCD) {
-        if (dynamic_cast<Fist*>(weapon)) {
+        // 优先远程武器
+        if (dynamic_cast<SolidBall*>(weapon)) {
+            SolidBall* solidBall = new SolidBall(this);
+            solidBall->setPos(pos() + QPointF(boundingRect().width()/4, boundingRect().height()/4));
+            if (facingRight) {
+                solidBall->setVel(vel() + QPointF(15, -10));
+            } else {
+                solidBall->setVel(vel() + QPointF(-15, -10));
+            }
+            emit solidBallCast(solidBall);
+            onAttackCD = true;
+            attackCDTimer.start(weapon->getAttackCD());
+            emit hudStartAttackCDCountingDown();
+        } else if (dynamic_cast<Rifle*>(weapon)) {
+            Bullet* bullet;
+            if (facingRight) {
+                bullet = new Bullet(pos(), QPointF(35, 0), NORMAL_BULLET, this);
+            } else {
+                bullet = new Bullet(pos(), QPointF(-35, 0), NORMAL_BULLET, this);
+            }
+            emit bulletShot(bullet);
+            onAttackCD = true;
+            attackCDTimer.start(weapon->getAttackCD());
+            emit hudStartAttackCDCountingDown();
+        } else if (dynamic_cast<SniperRifle*>(weapon)) {
+            Bullet* bullet;
+            if (facingRight) {
+                bullet = new Bullet(pos(), QPointF(5, 0), SNIPER_BULLET, this);
+            } else {
+                bullet = new Bullet(pos(), QPointF(-5, 0), SNIPER_BULLET, this);
+            }
+            emit bulletShot(bullet);
+            onAttackCD = true;
+            attackCDTimer.start(weapon->getAttackCD());
+            emit hudStartAttackCDCountingDown();
+        } else if (dynamic_cast<Knife*>(weapon)) {
+            if (PhysicsEngine::getInstance()->checkCollision(otherPlayer, weapon)) {
+                otherPlayer->health -= weapon->getHarm();
+                otherPlayer->onHealthChanged();
+                onAttackCD = true;
+                attackCDTimer.start(weapon->getAttackCD());
+                emit hudStartAttackCDCountingDown();
+            }
+        } else if (dynamic_cast<Fist*>(weapon)) {
             QPoint vec(0, 0);
             if (facingRight) {
                 vec = QPoint(5, 0);
             } else {
                 vec = QPoint(-5, 0);
             }
-
             if (PhysicsEngine::getInstance()->checkCollision(otherPlayer, weapon)) {
                 otherPlayer->health -= weapon->getHarm();
                 otherPlayer->setVel(vel() + vec);
                 otherPlayer->onHealthChanged();
-
                 onAttackCD = true;
-                attackCDTimer.start(weapon->getAttackCD());  // Set attack CD
+                attackCDTimer.start(weapon->getAttackCD());
                 emit hudStartAttackCDCountingDown();
             }
-        } else if (dynamic_cast<Knife*>(weapon)) {
-            if (PhysicsEngine::getInstance()->checkCollision(otherPlayer, weapon)) {
-                otherPlayer->health -= weapon->getHarm();
-                otherPlayer->onHealthChanged();
-
-                onAttackCD = true;
-                attackCDTimer.start(weapon->getAttackCD());  // Set attack CD
-                emit hudStartAttackCDCountingDown();
-            }
-        } else {
-            if (dynamic_cast<SolidBall*>(weapon)) {
-                SolidBall* solidBall = new SolidBall();
-                solidBall->setPos(pos());  
-                if (facingRight) {
-                    solidBall->setVel(vel() + QPoint(5, 5));
-                } else {
-                    solidBall->setVel(vel() + QPoint(-5, 5));
-                }
-                emit solidBallCast(solidBall);
-            } else if (dynamic_cast<Rifle*>(weapon)) {
-                Bullet* bullet;
-                if (facingRight) {
-                    bullet = new Bullet(pos(), QPointF(5, 0), NORMAL_BULLET);
-                } else {
-                    bullet = new Bullet(pos(), QPointF(-5, 0), NORMAL_BULLET);
-                }
-                emit bulletShot(bullet);
-            } else if (dynamic_cast<SniperRifle*>(weapon)) {
-                Bullet* bullet;
-                if (facingRight) {
-                    bullet = new Bullet(pos(), QPointF(5, 0), SNIPER_BULLET);
-                } else {
-                    bullet = new Bullet(pos(), QPointF(-5, 0), SNIPER_BULLET);
-                }
-                emit bulletShot(bullet);
-            }
-            onAttackCD = true;
-            attackCDTimer.start(weapon->getAttackCD());  // Set attack CD
-            emit hudStartAttackCDCountingDown();
         }
 
         if (!weapon->use()) {
@@ -194,28 +192,31 @@ void Player::attack(Player* otherPlayer) {
             weapon = new Fist();
             hud->setWeaponImage(weapon->getImage());
         }
-<<<<<<< HEAD
-=======
     }
 }
 
 void Player::pick(Item* item) {
-    if (dynamic_cast<ItemAttack*>(item)) {
-        hud->setWeaponImage(item->getImage());
-    } else if (dynamic_cast<ItemDefend*>(item)) {
-        hud->setDefenseImage(item->getImage());
-    } else if (dynamic_cast<ItemHeal*>(item)) {
-        auto healing = static_cast<ItemHeal*>(item);
-        healing->use(this);
->>>>>>> 8001155888255e3d75e247fdefe8e84431b38991
-    }
-}
+    // 优化武器拾取逻辑
+    auto createWeaponByType = [](Item* item) -> Weapon* {
+        if (dynamic_cast<Knife*>(item)) return new Knife();
+        if (dynamic_cast<SolidBall*>(item)) return new SolidBall();
+        if (dynamic_cast<Rifle*>(item)) return new Rifle(10); // 可根据实际 item 状态传递子弹数
+        if (dynamic_cast<SniperRifle*>(item)) return new SniperRifle(5);
+        return nullptr;
+    };
 
-void Player::pick(Item* item) {
-    if (dynamic_cast<ItemAttack*>(item)) {
-        hud->setWeaponImage(item->getImage());
-    } else if (dynamic_cast<ItemDefend*>(item)) {
-        hud->setDefenseImage(item->getImage());
+    Weapon* newWeapon = createWeaponByType(item);
+    if (newWeapon) {
+        if (weapon) delete weapon;
+        weapon = newWeapon;
+        hud->setWeaponImage(weapon->getImage());
+        return;
+    }
+
+    if (dynamic_cast<ItemDefend*>(item)) {
+        if (defense) delete defense;
+        defense = new Shirt(); // 可根据实际类型扩展
+        hud->setDefenseImage(defense->getImage());
     } else if (dynamic_cast<ItemHeal*>(item)) {
         auto healing = static_cast<ItemHeal*>(item);
         healing->use(this);
@@ -223,15 +224,7 @@ void Player::pick(Item* item) {
 }
 
 bool Player::isPicking() const {
-<<<<<<< HEAD
     return keyStates[keys->at(2)] && onGround();
-=======
-    return keyStates[keys->at(2)];
-}
-
-void Player::setOnGround(bool value) {
-    onGround = value;
->>>>>>> 8001155888255e3d75e247fdefe8e84431b38991
 }
 
 bool Player::isAttacking() const {
