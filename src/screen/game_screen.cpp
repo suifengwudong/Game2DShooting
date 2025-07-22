@@ -91,7 +91,7 @@ void GameScreen::initGame() {
         });
     }
 
-    spawnTimer->setInterval(3000); // 每3秒随机生成物品
+    spawnTimer->setInterval(15000); // 每3秒随机生成物品
     connect(spawnTimer, &QTimer::timeout, this, &GameScreen::randomSpawnItems);
     spawnTimer->start();
 }
@@ -111,45 +111,32 @@ void GameScreen::keyReleaseEvent(QKeyEvent *event) {
 }
 
 void GameScreen::randomSpawnItems() {
-    // 随机选择物品类型
-    qreal randomValue = QRandomGenerator::global()->generateDouble();
-    qreal cumulativeProbability = 0;
-
-    Item* item1 = nullptr;
-    Item* item2 = nullptr;
-    // Item* item3 = nullptr;
-
-    if (randomValue < (cumulativeProbability += Knife().getSpawnPR())) {
-        item1 = new Knife();
-    } else if (randomValue < (cumulativeProbability += SolidBall().getSpawnPR())) {
-        item1 = new SolidBall();
-    } else if (randomValue < (cumulativeProbability += Rifle(10).getSpawnPR())) {
-        item1 = new Rifle(10);
-    } else if (randomValue < (cumulativeProbability += SniperRifle(5).getSpawnPR())) {
-        item1 = new SniperRifle(5);
+    for (Item* item : items) {
+        gameScene->removeItem(item);
+        delete item;
     }
-    if (item1) items.append(item1);
-
-    cumulativeProbability = 0;
-    if (randomValue < (cumulativeProbability += Bandage().getSpawnPR())) {
-        item2 = new Bandage();
-    } else if (randomValue < (cumulativeProbability += MedKit().getSpawnPR())) {
-        item2 = new MedKit();
-    } else if (randomValue < (cumulativeProbability += Adrenaline().getSpawnPR())) {
-        item2 = new Adrenaline();
-    }
-    if (item2) items.append(item2);
-
-    // cumulativeProbability = 0;
-    // if (randomValue < (cumulativeProbability += ItemDefend().getSpawnPR())) {
-    //     item = new ItemDefend();
-    // }
-
-    for (auto item : items) {
-        int x = QRandomGenerator::global()->bounded(GAME_WIDTH - item->boundingRect().width());
-        int y = 0;
-        item->setPos(x, y);
-        gameScene->addItem(item);
+    items.clear();
+    int spawnCount = QRandomGenerator::global()->bounded(1, 3); // 每次生成1~2个
+    for (int i = 0; i < spawnCount; ++i) {
+        int type = QRandomGenerator::global()->bounded(0, 6);
+        Item* item = nullptr;
+        switch (type) {
+            case 0: item = new Knife(); break;
+            case 1: item = new SolidBall(); break;
+            case 2: item = new Rifle(10); break;
+            case 3: item = new SniperRifle(5); break;
+            case 4: item = new Bandage(); break;
+            case 5: item = new MedKit(); break;
+            case 6: item = new Adrenaline(); break;
+        }
+        if (item) {
+            int x = QRandomGenerator::global()->bounded(0, static_cast<int>(GAME_WIDTH - item->boundingRect().width()));
+            int y = QRandomGenerator::global()->bounded(0, TERRAIN_HEIGHT);
+            item->setPos(x, y);
+            item->setOnGround(false);
+            items.append(item);
+            gameScene->addItem(item);
+        }
     }
 }
 
@@ -191,7 +178,7 @@ void GameScreen::updateGame() {
         // pick items
         if (player->isPicking()) {
             for (Item* item: items) {
-                if (phEn->distance(player, item) < 80) {
+                if (phEn->distance(player, item) < 120) {
                     player->pick(item);
                     gameScene->removeItem(item);
                     items.removeOne(item);
@@ -200,23 +187,15 @@ void GameScreen::updateGame() {
                 }
             }
         }
-
-        // pick items
-        // if (player->isPicking()) {
-        //     for (Item* item: items) {
-        //         if (PhysicsEngine::getInstance()->distance(player, item) < 100) {
-        //             player->pick(item);
-        //         }
-        //     }
-        // }
     }
 
     for (auto bullet : bullets) {
         // update bullet
         bullet->update();
 
-        // check player and bullet collision
+        // check player and bullet collision（排除发射者）
         for (auto player : players) {
+            if (player == bullet->getShooter()) continue;
             if (PhysicsEngine::getInstance()->checkCollision(player, bullet)) {
                 bullet->use(player);
             }
@@ -233,6 +212,7 @@ void GameScreen::updateGame() {
 
         // check player and bullet collision
         for (auto player : players) {
+            if (player == bullet->getShooter()) continue;
             if (phEn->checkCollision(player, bullet)) {
                 bullet->use(player);
                 gameScene->removeItem(bullet);
@@ -251,8 +231,9 @@ void GameScreen::updateGame() {
             continue; // 如果实心球落地，跳过后续处理
         }
 
-        // check player and solid ball collision
+        // check player and solid ball collision（排除发射者）
         for (auto player : players) {
+            if (player == solidBall->getShooter()) continue;
             if (phEn->checkCollision(player, solidBall)) {
                 player->health -= solidBall->getHarm();
                 gameScene->removeItem(solidBall);

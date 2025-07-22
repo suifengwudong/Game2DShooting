@@ -3,7 +3,7 @@
 Bandage::Bandage() : ItemHeal(true, "bandage") {
     healHealth = 10;
     spawnPR = 0.2;
-    collideBox = QRectF(0, 0, 15, 15);
+    collideBox = QRectF(0, 0, 36, 36); // bandage.png 放大
 }
 
 Bandage::~Bandage() {}
@@ -16,7 +16,7 @@ void Bandage::use(Player* player) {
 MedKit::MedKit() : ItemHeal(true, "medkit") {
     healHealth = 100;
     spawnPR = 0.1;
-    collideBox = QRectF(0, 0, 15, 15);
+    collideBox = QRectF(0, 0, 44, 44); // medkit.png 放大
 }
 
 MedKit::~MedKit() {}
@@ -29,7 +29,7 @@ void MedKit::use(Player* player) {
 Adrenaline::Adrenaline() : ItemHeal(true, "adrenaline") {
     healHealth = 10;
     spawnPR = 0.1;
-    collideBox = QRectF(0, 0, 15, 15);
+    collideBox = QRectF(0, 0, 32, 48); // adrenaline.png 放大
     effectDuration = 5000;
     tickInterval = 1000;
     usage = 5;

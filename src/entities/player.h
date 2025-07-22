@@ -5,13 +5,14 @@
 #include "defense/defense.h"
 #include "weapon/weapon.h"
 #include "weapon/bullet.h"
+#include "../physics/motion_profile.h"
 #include <QMap>
 #include <QTimer>
 
 class HUD;
 class Bullet; // 前向声明
 
-class Player : public GameObject
+class Player : public GameObject, public MotionProfile
 {
     Q_OBJECT
 public:

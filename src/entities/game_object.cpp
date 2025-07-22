@@ -1,4 +1,5 @@
 #include "game_object.h"
+#include "player.h"
 #include "config.h"
 #include "../physics/physics_engine.h"
 #include "../map/map.h"
@@ -27,20 +28,19 @@ void GameObject::update() {
         phEn->applyFriction(this);
     } else {
         phEn->applyGravity(this);
-        phEn->applyFriction(this);
+        if (dynamic_cast<Player*>(this)) phEn->applyFriction(this);
     }
-    
+
+    // 限制终端速度（如果继承了MotionProfile）
+    MotionProfile* mp = dynamic_cast<MotionProfile*>(this);
+    if (mp) {
+        float maxVx = mp->getTerminalVelocityX();
+        float maxVy = mp->getTerminalVelocityY();
+        if (std::abs(m_vel.x()) > maxVx) m_vel.setX((m_vel.x() > 0 ? 1 : -1) * maxVx);
+        if (std::abs(m_vel.y()) > maxVy) m_vel.setY((m_vel.y() > 0 ? 1 : -1) * maxVy);
+    }
+
     // update position
-    auto physicsEngine = PhysicsEngine::getInstance();
-    auto player = dynamic_cast<Player*>(this);
-
-    if (player && player->isOnGround()) {
-        physicsEngine->applyFriction(this);
-    } else {
-        physicsEngine->applyGravity(this);
-        physicsEngine->applyFriction(this);
-    }
-
     setPos(pos() + m_vel);
 
     // boundaries

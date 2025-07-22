@@ -13,5 +13,6 @@
         <file>entities/medkit.png</file>
         <file>entities/rifle.png</file>
         <file>entities/sniper_rifle.png</file>
+        <file>entities/bullet.png</file>
     </qresource>
 </RCC>

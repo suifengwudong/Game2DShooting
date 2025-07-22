@@ -2,6 +2,7 @@
 #define GAME_OBJECT_H
 
 #include "../physics/physics_engine.h"
+#include "../physics/motion_profile.h"
 #include <QObject>
 #include <QGraphicsItem>
 #include <QPointF>

@@ -16,14 +16,8 @@ public:
 
     void loadImage();
     QImage* getImage();
-<<<<<<< HEAD
     qreal getSpawnPR() const;
     QString getName() const;
-=======
-    void loadImage();
-
-    qreal getSpawnPR() const;
->>>>>>> 8001155888255e3d75e247fdefe8e84431b38991
 
     // void startFalling();
 
@@ -31,13 +25,10 @@ protected:
     QImage *img;
     QString name;
     qreal spawnPR;
-<<<<<<< HEAD
 
     // falling item timer
     QTimer* fallTimer;
     QTimer* existTimer;
-=======
->>>>>>> 8001155888255e3d75e247fdefe8e84431b38991
 };
 
 #endif // ITEM_H

@@ -17,9 +17,6 @@ PhysicsEngine* PhysicsEngine::getInstance() {
 void PhysicsEngine::applyGravity(GameObject* object, qreal gravity) {
     QPointF vel = object->vel();
     vel.setY(vel.y() + gravity);
-    if (vel.y() > terminalVelocity_y) {
-        vel.setY(terminalVelocity_y);
-    }
     object->setVel(vel);
 }
 
@@ -41,13 +38,7 @@ void PhysicsEngine::applyFriction(GameObject* object, qreal friction) {
         }
     }
     
-    if (std::abs(vel.x()) > terminalVelocity_x) {
-        if (vel.x() > 0) {
-            vel.setX(terminalVelocity_x);
-        } else {
-            vel.setX(-terminalVelocity_x);
-        }
-    }
+    // 终端速度限制已交由MotionProfile和GameObject::update统一处理
 
     object->setVel(vel);
 }
@@ -134,8 +125,9 @@ void PhysicsEngine::handleCollision(CollisionInfo &info) {
 }
 
 qreal PhysicsEngine::distance(GameObject* obj1, GameObject* obj2) {
-    QPointF p1 = obj1->boundingRect().center();
-    QPointF p2 = obj2->boundingRect().center();
+    // find the center points of both objects
+    QPointF p1 = obj1->pos() + QPointF(obj1->boundingRect().width() / 2, obj1->boundingRect().height() / 2);
+    QPointF p2 = obj2->pos() + QPointF(obj2->boundingRect().width() / 2, obj2->boundingRect().height() / 2);
 
     qreal dx = p1.x() - p2.x();
     qreal dy = p1.y() - p2.y();

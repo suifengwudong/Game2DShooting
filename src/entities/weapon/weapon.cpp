@@ -1,19 +1,18 @@
 #include "weapon.h"
 #include "bullet.h"
-#include <QDebug>
-#include <QTimer>
 
 Weapon::Weapon(const QString& weaponName) :
-    ItemAttack(true, weaponName) {}
+    ItemAttack(true, weaponName) 
+{}
 
 /* FIST */
 Fist::Fist() :
     Weapon("fist")
 {
-    harm = 5;
-    attackCD = 1000;
+    harm = 8;
+    attackCD = 400;
     spawnPR = 0;
-    collideBox = QRectF(0, 0, 10, 10);
+    collideBox = QRectF(0, 0, 40, 40);
 }
 
 Fist::~Fist() {}
@@ -25,14 +24,10 @@ bool Fist::use() {
 /* KNIFE */
 Knife::Knife() :
     Weapon("knife") {
-    harm = 8;
-    attackCD = 1000;
+    harm = 18;
+    attackCD = 600;
     spawnPR = 0.2;
-<<<<<<< HEAD
-    collideBox = QRectF(0, 0, 15, 15);
-=======
-    collideBox = QRectF(0, 0, 15, 5);
->>>>>>> 8001155888255e3d75e247fdefe8e84431b38991
+    collideBox = QRectF(0, 0, 40, 40);
 }
 
 Knife::~Knife() {}
@@ -42,14 +37,16 @@ bool Knife::use() {
 }
 
 /* SOLIDBALL */
-SolidBall::SolidBall() :
-    Weapon("solidball")
+SolidBall::SolidBall(Player* shooter, float terminalVx, float terminalVy) :
+    Weapon("solidball"), MotionProfile(terminalVx, terminalVy), m_shooter(shooter)
 {
-    harm = 10;
+    harm = 35;
     name = "solidball";
-    attackCD = 1000;
+    attackCD = 800;
     spawnPR = 0.1;
-    collideBox = QRectF(0, 0, 20, 20);
+    collideBox = QRectF(0, 0, 32, 32);
+    terminalVelocityX = 12.0f;
+    terminalVelocityY = 16.0f;
 }
 
 SolidBall::~SolidBall() {}
@@ -66,52 +63,48 @@ void SolidBall::update() {
 Rifle::Rifle(int bulletCount) :
     Weapon("rifle"), bulletCount(bulletCount)
 {
-    harm = 15;
-    attackCD = 1000;
+    harm = 25;
+    attackCD = 500;
     spawnPR = 0.15;
-    collideBox = QRectF(0, 0, 5, 2);
-    shootTimer.setInterval(100);
+    collideBox = QRectF(0, 0, 80, 24);
 }
 
 Rifle::~Rifle() {}
 
 bool Rifle::use() {
-    if (bulletCount > 0 && !shootTimer.isActive()) {
+    if (bulletCount > 0) {
         bulletCount--;
-        shootTimer.start();
         return true;
     }
     return false;
 }
 
-Bullet* Rifle::createBullet(QPointF startPos, QPointF direction) {
-    QPointF velocity = direction * 10; // 子弹速度
-    return new Bullet(startPos, velocity, harm);
+Bullet* Rifle::createBullet(QPointF startPos, QPointF direction, Player* shooter) {
+    QPointF velocity = direction * 10;
+    return new Bullet(startPos, velocity, harm, shooter);
 }
 
 /* SNIPER RIFLE */
 SniperRifle::SniperRifle(int bulletCount) :
     Weapon("sniper_rifle"), bulletCount(bulletCount)
 {
-    harm = 50;
-    attackCD = 1000;
+    harm = 80;
+    attackCD = 1200;
     spawnPR = 0.05;
-    collideBox = QRectF(0, 0, 8, 3);
-    shootTimer.setInterval(1000); // 射击间隔
+    collideBox = QRectF(0, 0, 100, 28);
 }
 
 SniperRifle::~SniperRifle() {}
 
 bool SniperRifle::use() {
-    if (bulletCount > 0 && !shootTimer.isActive()) {
+    if (bulletCount > 0) {
         bulletCount--;
-        shootTimer.start();
         return true;
     }
     return false;
 }
 
-Bullet* SniperRifle::createBullet(QPointF startPos, QPointF direction) {
-    QPointF velocity = direction * 10; // 子弹速度
-    return new Bullet(startPos, velocity, harm);
+Bullet* SniperRifle::createBullet(QPointF startPos, QPointF direction, Player* shooter) {
+    QPointF velocity = direction * 10;
+    return new Bullet(startPos, velocity, harm, shooter);
 }
