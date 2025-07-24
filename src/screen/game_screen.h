@@ -13,6 +13,7 @@
 
 class GameScreen : public Screen
 {
+Q_OBJECT
 public:
     explicit GameScreen(QWidget *parent = nullptr);
     ~GameScreen();
@@ -22,6 +23,12 @@ public:
 
     void initGame();
     void updateGame();
+    void pauseGame();
+    void resumeGame();
+
+signals:
+    void gamePaused(QStringList statuslist);
+    void gameEnd(QString &playerName);
 
 private:
     QGraphicsScene *gameScene;
@@ -38,6 +45,7 @@ private:
     PhysicsEngine* phEn;
 
     void randomSpawnItems();
+    void clearGameState();
     // void spawnPlayer(QString playerName, int ax, int ay);
 };
 

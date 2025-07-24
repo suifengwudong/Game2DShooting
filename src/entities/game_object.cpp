@@ -182,20 +182,21 @@ void GameObject::processCollisionWithTerrains(Map* gameMap) {
         for (int x = minX; x <= maxX; ++x) {
             Terrain* terrain = gameMap->map[maxY][x];
             if (terrain && terrain->getTypeId() != 0) {
-                qDebug() << "Processing terrain at (" << x << ", " << maxY << ")";
+                // qDebug() << "Processing terrain at (" << x << ", " << maxY << ")";
                 QRectF overlap = terrain->getPosRectF().intersected(getPosRectF());
                 if (!overlap.isEmpty()) {
                     // 位置处理
                     collisionInfo.append(phEn->getCollisionInfo(this, terrain));
-                    
                     // 逻辑处理
-                    terrain->onCollidedWith(this);
+                    // if (collisionInfo.last().direction == Direction::TOP) terrain->onCollidedWith(this);
                 }
             }
 
             Terrain* terrainBelow = gameMap->map[maxY+1][x];
             if (terrainBelow && terrainBelow->getTypeId() != 0) {
                 standingOnTerrain = true;
+                setVel(QPointF(vel().x(), 0)); // 停止下落
+                break;
             }
         }
         setOnGround(standingOnTerrain);
@@ -204,15 +205,13 @@ void GameObject::processCollisionWithTerrains(Map* gameMap) {
             for (int x = minX; x <= maxX; ++x) {
                 Terrain* terrain = gameMap->map[y][x];
                 if (terrain && terrain->getTypeId() != 0) {
-                    qDebug() << "Processing terrain at (" << x << ", " << y << ")";
+                    // qDebug() << "Processing terrain at (" << x << ", " << y << ")";
                     QRectF overlap = terrain->getPosRectF().intersected(getPosRectF());
                     if (!overlap.isEmpty()) {
-                        qDebug() << "Collision detected with terrain at (" << x << ", " << y << ")";
+                        // qDebug() << "Collision detected with terrain at (" << x << ", " << y << ")";
                         // 位置处理
                         collisionInfo.append(phEn->getCollisionInfo(this, terrain));
-                        qDebug() << "Collision Direction:" << collisionInfo.last().direction;
-                        // 逻辑处理
-                        terrain->onCollidedWith(this);
+                        // qDebug() << "Collision Direction:" << collisionInfo.last().direction;
                     }
                 }
             }

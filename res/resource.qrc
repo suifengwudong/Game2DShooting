@@ -1,18 +1,22 @@
 <RCC>
     <qresource prefix="/img">
+        <file>entities/player_default.png</file>
         <file>entities/fist.png</file>
         <file>entities/knife.png</file>
-        <file>entities/player_default.png</file>
         <file>entities/solidball.png</file>
+        <file>entities/rifle.png</file>
+        <file>entities/sniper_rifle.png</file>
+        <file>entities/shirt.png</file>
+        <file>entities/chain_armor.png</file>
+        <file>entities/bulletproof_vest.png</file>
+        <file>entities/bandage.png</file>
+        <file>entities/medkit.png</file>
+        <file>entities/adrenaline.png</file>
+        <file>entities/bullet.png</file>
         <file>terrain/grass.png</file>
         <file>terrain/ice.png</file>
         <file>terrain/mud.png</file>
-        <file>entities/shirt.png</file>
-        <file>entities/adrenaline.png</file>
-        <file>entities/bandage.png</file>
-        <file>entities/medkit.png</file>
-        <file>entities/rifle.png</file>
-        <file>entities/sniper_rifle.png</file>
-        <file>entities/bullet.png</file>
+        <file>status/normal_state.png</file>
+        <file>status/crouch_state.png</file>
     </qresource>
 </RCC>

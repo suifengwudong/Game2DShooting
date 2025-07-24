@@ -116,3 +116,12 @@ void Map::paint(QPainter *painter)
         }
     }
 }
+
+int Map::getTerrainTypeAt(const QPoint &gridPos) const
+{
+    if (gridPos.x() < 0 || gridPos.x() >= width || gridPos.y() < 0 || gridPos.y() >= height) {
+        return 0; // 超出边界，返回 Null 地形
+    }
+    Terrain* terrain = map[gridPos.y()][gridPos.x()];
+    return terrain->getTypeId(); // 返回地形类型 ID
+}

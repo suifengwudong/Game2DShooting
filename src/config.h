@@ -1,11 +1,11 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
-#define GAME_NAME "BiuBiuBiu v1.0"
+#define GAME_NAME "2D对战射击游戏 v1.0"
 
 // GAME CONFIG
-#define START_WIDTH 250
-#define START_HEIGHT 400
+#define START_WIDTH 440
+#define START_HEIGHT 560
 // ensure the game width and height are multiples of TERRAIN_WIDTH and TERRAIN_HEIGHT
 #define GAME_WIDTH 810
 #define GAME_HEIGHT 540
@@ -17,8 +17,10 @@
 #define HUD_HEIGHT 70
 
 // ENTITY CONFIG
-#define PLAYER_WIDTH 60
-#define PLAYER_HEIGHT 80
+#define PLAYER_WIDTH 54
+#define PLAYER_HEIGHT 84
+#define PLAYER_COLLISION_WIDTH 54
+#define PLAYER_COLLISION_HEIGHT 84
 #define TERRAIN_WIDTH 30
 #define TERRAIN_HEIGHT TERRAIN_WIDTH
 
@@ -32,9 +34,11 @@
 #define INIT_HEALTH 100
 #define MAX_HEALTH 100
 
-// BULLETS
+// BULLETS SPEED
+#define NORMAL_BULLET_SPEED 35
+#define SNIPER_BULLET_SPEED 50
 #define NORMAL_BULLET 20
-#define SNIPER_BULLET 50
+#define SNIPER_BULLET 45
 
 // IMAGE CONFIG
 #define TERRAIN_IMAGE_SIZE 32

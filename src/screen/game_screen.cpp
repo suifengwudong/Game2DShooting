@@ -46,7 +46,43 @@ GameScreen::~GameScreen() {
     delete spawnTimer;
 }
 
+
+void GameScreen::clearGameState() {
+    // 1. 清理旧玩家
+    for (Player* player : players) {
+        gameScene->removeItem(player);
+        delete player;
+    }
+    players.clear();
+
+    // 2. 清理旧子弹
+    for (Bullet* bullet : bullets) {
+        gameScene->removeItem(bullet);
+        delete bullet;
+    }
+    bullets.clear();
+
+    // 3. 清理旧实心球
+    for (SolidBall* solidBall : solidBalls) {
+        gameScene->removeItem(solidBall);
+        delete solidBall;
+    }
+    solidBalls.clear();
+
+    // 4. 清理旧道具
+    for (Item* item : items) {
+        gameScene->removeItem(item);
+        delete item;
+    }
+    items.clear();
+
+    // 5. 清理场景所有内容
+    gameScene->clear();
+}
+
 void GameScreen::initGame() {
+    clearGameState();
+
     setStyleSheet("background-color: #CCFFFF;");
     gameScene->setSceneRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
     gameView->setSceneRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
@@ -89,9 +125,12 @@ void GameScreen::initGame() {
             solidBalls.append(solidBall);
             gameScene->addItem(solidBall);
         });
+        connect(player, &Player::gameEnd, [this](QString &playerName){
+            emit gameEnd(playerName);
+        });
     }
 
-    spawnTimer->setInterval(15000); // 每3秒随机生成物品
+    spawnTimer->setInterval(15000); // 每 15 秒随机生成物品
     connect(spawnTimer, &QTimer::timeout, this, &GameScreen::randomSpawnItems);
     spawnTimer->start();
 }
@@ -100,7 +139,27 @@ void GameScreen::keyPressEvent(QKeyEvent *event) {
     for (Player* player : players) {
         player->keyPressEvent(event);
     }
-    QWidget::keyPressEvent(event);
+    if (event->key() == Qt::Key_P) {
+        pauseGame();
+        return;
+    }
+    Screen::keyPressEvent(event);
+}
+
+void GameScreen::pauseGame() {
+    if (updateTimer) updateTimer->stop();
+    // 收集玩家状态
+    QStringList statusList;
+    for (Player* player : players) {
+        QString weaponName = player->weapon ? player->weapon->getName() : "无武器";
+        statusList << QString("%1  血量:%2  武器:%3").arg(player->name).arg(player->health).arg(weaponName);
+    }
+    // 传递给PauseScreen
+    emit gamePaused(statusList);
+}
+
+void GameScreen::resumeGame() {
+    if (updateTimer) updateTimer->start(16);
 }
 
 void GameScreen::keyReleaseEvent(QKeyEvent *event) {
@@ -118,25 +177,29 @@ void GameScreen::randomSpawnItems() {
     items.clear();
     int spawnCount = QRandomGenerator::global()->bounded(1, 3); // 每次生成1~2个
     for (int i = 0; i < spawnCount; ++i) {
-        int type = QRandomGenerator::global()->bounded(0, 6);
+        std::vector<Item*> candidates = {
+            new Knife(), new SolidBall(), new Rifle(10), new SniperRifle(5),
+            new Bandage(), new MedKit(), new Adrenaline(), new ChainArmor(), new BulletproofVest()
+        };
+        double r = QRandomGenerator::global()->generateDouble();
+        double acc = 0;
         Item* item = nullptr;
-        switch (type) {
-            case 0: item = new Knife(); break;
-            case 1: item = new SolidBall(); break;
-            case 2: item = new Rifle(10); break;
-            case 3: item = new SniperRifle(5); break;
-            case 4: item = new Bandage(); break;
-            case 5: item = new MedKit(); break;
-            case 6: item = new Adrenaline(); break;
+        for (auto* candidate : candidates) {
+            acc += candidate->getSpawnPR();
+            if (r < acc) {
+                item = candidate;
+                break;
+            }
+            delete candidate;
         }
-        if (item) {
-            int x = QRandomGenerator::global()->bounded(0, static_cast<int>(GAME_WIDTH - item->boundingRect().width()));
-            int y = QRandomGenerator::global()->bounded(0, TERRAIN_HEIGHT);
-            item->setPos(x, y);
-            item->setOnGround(false);
-            items.append(item);
-            gameScene->addItem(item);
-        }
+        if (!item) item = new Knife(); // 保底
+        qDebug() << "Spawned item:" << item->getName();
+        int x = QRandomGenerator::global()->bounded(0, static_cast<int>(GAME_WIDTH - item->boundingRect().width()));
+        int y = QRandomGenerator::global()->bounded(0, TERRAIN_HEIGHT);
+        item->setPos(x, y);
+        item->setOnGround(false);
+        items.append(item);
+        gameScene->addItem(item);
     }
 }
 
@@ -146,6 +209,7 @@ void GameScreen::updateGame() {
     for (Player* player : players) {
         // update player and status
         player->update();
+        // player->setStealth(false);
         // player->setOnGround(false);
     }
 
@@ -198,6 +262,10 @@ void GameScreen::updateGame() {
             if (player == bullet->getShooter()) continue;
             if (PhysicsEngine::getInstance()->checkCollision(player, bullet)) {
                 bullet->use(player);
+                // qDebug() << "Bullet hit player:" << player->name << "Health:" << player->health;
+                gameScene->removeItem(bullet);
+                bullets.removeOne(bullet);
+                delete bullet;
             }
         }
     }
@@ -236,6 +304,7 @@ void GameScreen::updateGame() {
             if (player == solidBall->getShooter()) continue;
             if (phEn->checkCollision(player, solidBall)) {
                 player->health -= solidBall->getHarm();
+                player->onHealthChanged();
                 gameScene->removeItem(solidBall);
                 solidBalls.removeOne(solidBall);
                 delete solidBall;

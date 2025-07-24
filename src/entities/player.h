@@ -42,12 +42,17 @@ public:
     int health;
     Weapon* weapon;
     ItemDefend* defense;
+    QImage* img;
+    QList<QImage*> imgList;
 
     HUD* hud;
 
     QImage* getImage();
+    void setStealth(bool v);
+    void onCollidedWithTerrain(int terrainType);
 
 signals:
+    void gameEnd(QString &playerName);
     void healthChanged();
     void bulletShot(Bullet *bullet);
     void solidBallCast(SolidBall *solidBall);
@@ -66,7 +71,12 @@ private:
     QTimer attackCDTimer;
     QTimer* adrenalineTimer = nullptr;
 
+    // 地形特效相关
+    bool isStealth = false;
+    int currentTerrainType;
+
     void updateWeaponPosition();
+    void checkTerrainEffect();
 
     friend class InputManager;
 };

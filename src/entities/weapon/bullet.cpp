@@ -2,20 +2,18 @@
 #include "../player.h"
 
 Bullet::Bullet(QPointF startPos, QPointF velocity, int m_harm, Player* shooter)
-    : ItemAttack("bullet"), m_shooter(shooter)
+    : ItemAttack(true, "bullet"), m_shooter(shooter)
 {
     harm = m_harm;
     setPos(startPos);
     setVel(velocity);
-    collideBox = QRectF(0, 0, 16, 8);
-    terminalVelocityX = 150.f;
-    terminalVelocityY = 150.f;
+    collideBox = QRectF(0, 0, 50, 25);
+    // qDebug() << "Name:" << name;
 }
 
 Bullet::~Bullet() {}
 
 void Bullet::update() {
-    qDebug() << "Bullet position:" << pos();
     GameObject::update();
 }
 

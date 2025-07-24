@@ -21,6 +21,7 @@ public:
     // gets
     int getWidth() const { return width; }
     int getHeight() const { return height; }
+    int getTerrainTypeAt(const QPoint &gridPos) const;
 
 private:
     Map(int grid_w, int grid_h, const QString& path = DEFAULT_MAP_PATH);

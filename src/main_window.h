@@ -5,13 +5,14 @@
 #include <QStackedWidget>
 #include "screen/game_screen.h"
 #include "screen/start_screen.h"
+#include "screen/pause_screen.h"
+#include "screen/death_screen.h"
 #include "screen/settings_screen.h"
 #include "screen/map_editor_screen.h"
 
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
-
 public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
@@ -19,6 +20,8 @@ public:
 private:
     StartScreen *m_startScreen;
     GameScreen *m_gameScreen;
+    PauseScreen *m_pauseScreen;
+    DeathScreen *m_deathScreen;
     SettingsScreen *m_settingsScreen;
     MapEditorScreen *m_mapEditorScreen;
     QStackedWidget *m_stackedWidget;

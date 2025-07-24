@@ -3,7 +3,7 @@
 
 class MotionProfile {
 public:
-    MotionProfile(float terminalVx = 15.0f, float terminalVy = 15.0f)
+    MotionProfile(float terminalVx = 1000.0f, float terminalVy = 1000.0f)
         : terminalVelocityX(terminalVx), terminalVelocityY(terminalVy) {}
     virtual ~MotionProfile() = default;
 
