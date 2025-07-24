@@ -1,25 +1,31 @@
 #include "player.h"
 #include "config.h"
+#include "../map/map.h"
 #include "../screen/hud.h"
 #include "weapon/weapon.h"
 #include "defense/defense.h"
 #include "heal/heal.h"
+#include "defense/armor.h"
 #include <QPainter>
 #include <QDebug>
 
 Player::Player(QString const playerName, int ax, int ay, QWidget *parent) :
     GameObject(true), name(playerName), health(INIT_HEALTH), facingRight(true)
 {
-    collideBox = QRectF(0, 0, PLAYER_WIDTH, PLAYER_HEIGHT);
+    collideBox = QRectF(0, 0, PLAYER_COLLISION_WIDTH, PLAYER_COLLISION_HEIGHT);
     setTerminalVelocityX(10.0f);
     setTerminalVelocityY(15.0f);
     keys = InputManager::allocateKeyMap(this)->getKeyMap();
     setFlag(QGraphicsItem::ItemIsFocusable);
     setFocus();
+
+    // set profile image
     proImg = new QImage();
-    if (!proImg->load(":/img/entities/player_default.png")){
-        qDebug() << "Failed to load player image";
-    }
+    proImg->load(":/img/entities/player_default.png");
+    // set appearance image
+    imgList.append(new QImage(":/img/status/normal_state.png"));
+    imgList.append(new QImage(":/img/status/crouch_state.png"));
+    img = imgList[0];
 
     weapon = new Fist();
     defense = new Shirt();
@@ -61,7 +67,18 @@ void Player::keyPressEvent(QKeyEvent *event) {
     if (keys->contains(key)) {
         keyStates[key] = true;
     }
-    // 不在这里执行具体操作，只更新按键状态
+
+    // 处理隐身
+    if (event->key() == keys->at(2)) {
+        if (currentTerrainType == 2) isStealth = true; 
+        else isStealth = false;
+        img = imgList[1];
+        QGraphicsItem::update();
+    } else {
+        isStealth = false;
+        img = imgList[0];
+    }
+    
     GameObject::keyPressEvent(event);
 }
 
@@ -70,15 +87,27 @@ void Player::keyReleaseEvent(QKeyEvent *event) {
     if (keys->contains(key)) {
         keyStates[key] = false;
     }
+
+    if (event->key() == keys->at(2)) {
+        if (currentTerrainType == 2) isStealth = false; // 离开草地时取消隐身
+        img = imgList[0];
+        QGraphicsItem::update();
+    }
+
     // 不在这里执行具体操作，只更新按键状态
     GameObject::keyReleaseEvent(event);
 }
 
 void Player::update() {
+    // 特殊地形
+    checkTerrainEffect();
+
     if (onGround()) {
         // jump and crouch can not happen simutaneously
         if (keyStates[keys->at(0)]) jump();
-        else if (keyStates[keys->at(2)]) crouch();
+        else if (keyStates[keys->at(2)]) {
+            crouch();
+        }
     } else {
         if (keyStates[keys->at(2)]) drop();
     }
@@ -89,23 +118,48 @@ void Player::update() {
     if (keyStates[keys->at(3)]) {
         right();
     }
+
     GameObject::update();
     updateWeaponPosition();
+
+    // qDebug() << "isStealth:" << isStealth << ", terrain:" << currentTerrainType << ", crouch:" << keyStates[keys->at(2)] << ", v_x:" << getTerminalVelocityX();
+}
+
+void Player::onCollidedWithTerrain(int terrainType) {
+    currentTerrainType = terrainType;
+    // 速度和隐身判定交由update统一处理
 }
 
 void Player::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) {
     Q_UNUSED(option);
     Q_UNUSED(widget);
-    painter->fillRect(collideBox, Qt::red);  // 红色矩形
+    if (isStealth) {
+        painter->setOpacity(0.18);
+    } else {
+        painter->setOpacity(1.0);
+    }
+
+    // 从 img 中绘制角色形象
+    painter->save();
+    if (!facingRight) {
+        painter->translate(boundingRect().width(), 0);
+        painter->scale(-1, 1);
+    }
+    if (img && !img->isNull()) {
+        painter->drawImage(boundingRect(), *img, QRectF(0, 0, img->width(), img->height()));
+    } else {
+        painter->fillRect(boundingRect(), Qt::red);  // 红色矩形
+    }
+    painter->restore();
 }
 
 void Player::left() {
-    setVel(QPointF(vel().x()-5, vel().y()));
+    setVel(QPointF(vel().x() - 7, vel().y()));
     facingRight = false;
 }
 
 void Player::right() {
-    setVel(QPointF(vel().x()+5, vel().y()));
+    setVel(QPointF(vel().x() + 7, vel().y()));
     facingRight = true;
 }
 
@@ -128,6 +182,14 @@ void Player::drop() {
 void Player::attack(Player* otherPlayer) {
     if (otherPlayer && !onAttackCD) {
         // 优先远程武器
+        QString weaponType;
+        if (dynamic_cast<SolidBall*>(weapon)) weaponType = "solidball";
+        else if (dynamic_cast<Rifle*>(weapon)) weaponType = "bullet";
+        else if (dynamic_cast<SniperRifle*>(weapon)) weaponType = "bullet";
+        else if (dynamic_cast<Knife*>(weapon)) weaponType = "knife";
+        else if (dynamic_cast<Fist*>(weapon)) weaponType = "fist";
+        else weaponType = "other";
+
         if (dynamic_cast<SolidBall*>(weapon)) {
             SolidBall* solidBall = new SolidBall(this);
             solidBall->setPos(pos() + QPointF(boundingRect().width()/4, boundingRect().height()/4));
@@ -140,23 +202,12 @@ void Player::attack(Player* otherPlayer) {
             onAttackCD = true;
             attackCDTimer.start(weapon->getAttackCD());
             emit hudStartAttackCDCountingDown();
-        } else if (dynamic_cast<Rifle*>(weapon)) {
+        } else if (dynamic_cast<Rifle*>(weapon) || dynamic_cast<SniperRifle*>(weapon)) {
             Bullet* bullet;
             if (facingRight) {
-                bullet = new Bullet(pos(), QPointF(35, 0), NORMAL_BULLET, this);
+                bullet = new Bullet(pos(), QPointF(dynamic_cast<Rifle*>(weapon) ? NORMAL_BULLET_SPEED : SNIPER_BULLET_SPEED, 0), weaponType == "bullet" ? (dynamic_cast<Rifle*>(weapon) ? NORMAL_BULLET : SNIPER_BULLET) : NORMAL_BULLET, this);
             } else {
-                bullet = new Bullet(pos(), QPointF(-35, 0), NORMAL_BULLET, this);
-            }
-            emit bulletShot(bullet);
-            onAttackCD = true;
-            attackCDTimer.start(weapon->getAttackCD());
-            emit hudStartAttackCDCountingDown();
-        } else if (dynamic_cast<SniperRifle*>(weapon)) {
-            Bullet* bullet;
-            if (facingRight) {
-                bullet = new Bullet(pos(), QPointF(5, 0), SNIPER_BULLET, this);
-            } else {
-                bullet = new Bullet(pos(), QPointF(-5, 0), SNIPER_BULLET, this);
+                bullet = new Bullet(pos(), QPointF(dynamic_cast<Rifle*>(weapon) ? -NORMAL_BULLET_SPEED : -SNIPER_BULLET_SPEED, 0), weaponType == "bullet" ? (dynamic_cast<Rifle*>(weapon) ? NORMAL_BULLET : SNIPER_BULLET) : NORMAL_BULLET, this);
             }
             emit bulletShot(bullet);
             onAttackCD = true;
@@ -164,7 +215,12 @@ void Player::attack(Player* otherPlayer) {
             emit hudStartAttackCDCountingDown();
         } else if (dynamic_cast<Knife*>(weapon)) {
             if (PhysicsEngine::getInstance()->checkCollision(otherPlayer, weapon)) {
-                otherPlayer->health -= weapon->getHarm();
+                int harm = weapon->getHarm();
+                Armor* armor = dynamic_cast<Armor*>(otherPlayer->defense);
+                if (armor && armor->defend("knife")) {
+                    harm = armor->absorbDamage("knife", harm);
+                }
+                otherPlayer->health -= harm;
                 otherPlayer->onHealthChanged();
                 onAttackCD = true;
                 attackCDTimer.start(weapon->getAttackCD());
@@ -178,7 +234,12 @@ void Player::attack(Player* otherPlayer) {
                 vec = QPoint(-5, 0);
             }
             if (PhysicsEngine::getInstance()->checkCollision(otherPlayer, weapon)) {
-                otherPlayer->health -= weapon->getHarm();
+                int harm = weapon->getHarm();
+                Armor* armor = dynamic_cast<Armor*>(otherPlayer->defense);
+                if (armor && armor->defend("fist")) {
+                    harm = armor->absorbDamage("fist", harm);
+                }
+                otherPlayer->health -= harm;
                 otherPlayer->setVel(vel() + vec);
                 otherPlayer->onHealthChanged();
                 onAttackCD = true;
@@ -215,7 +276,13 @@ void Player::pick(Item* item) {
 
     if (dynamic_cast<ItemDefend*>(item)) {
         if (defense) delete defense;
-        defense = new Shirt(); // 可根据实际类型扩展
+        if (dynamic_cast<ChainArmor*>(item)) {
+            defense = new ChainArmor();
+        } else if (dynamic_cast<BulletproofVest*>(item)) {
+            defense = new BulletproofVest();
+        } else {
+            defense = new Shirt();
+        }
         hud->setDefenseImage(defense->getImage());
     } else if (dynamic_cast<ItemHeal*>(item)) {
         auto healing = static_cast<ItemHeal*>(item);
@@ -239,7 +306,7 @@ void Player::onHealthChanged() {
     }
     hud->updateHealth(health);
     if (health <= 0) {
-        // TODO: death
+        emit gameEnd(name);
     }
 }
 
@@ -253,6 +320,28 @@ void Player::updateWeaponPosition() {
     weapon->setPos(weaponPos);
 }
 
+void Player::checkTerrainEffect() {
+    // 获取地形
+    Map* gameMap = Map::getInstance();
+    QRect gridPos = getGrid();
+    int middleX = positionToGrid(pos() + QPointF(boundingRect().width()/2, boundingRect().height() + 1)).x();
+    int terrainBelow = gameMap->getTerrainTypeAt(QPoint(middleX, gridPos.bottom() + 1));
+    currentTerrainType = terrainBelow;
+
+    // 处理速度
+    if (currentTerrainType == 3) {
+        setTerminalVelocityX(20.0f);
+    } else if (currentTerrainType == 0) {
+        setTerminalVelocityX(15.0f);
+    } else {
+        setTerminalVelocityX(10.0f);
+    }
+}
+
 QImage* Player::getImage() {
     return proImg;
+}
+
+void Player::setStealth(bool v) {
+    isStealth = v;
 }

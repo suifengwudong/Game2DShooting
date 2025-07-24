@@ -25,24 +25,3 @@ QImage* Terrain::getImage() {
 int Terrain::getTypeId() {
     return typeId;
 }
-
-void Terrain::onCollidedWith(GameObject *obj) {
-    if (typeId == 0) return; // 空地不处理碰撞
-
-    auto item = dynamic_cast<Item*>(obj);
-    if (item) {
-        onCollidedWith(item);
-        return;
-    }
-
-    auto player = dynamic_cast<Player*>(obj);
-    if (player) {
-        onCollidedWith(player);
-        return;
-    }
-}
-
-void Terrain::onCollidedWith(Item *item) {
-    item->setOnGround(true);
-    item->setVel(QPointF(0, 0)); 
-}

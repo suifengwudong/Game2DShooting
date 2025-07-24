@@ -8,6 +8,6 @@ InputManager::InputManager(QObject *parent) : QWidget(nullptr) {
 
 KeyMap* InputManager::allocateKeyMap(Player *player) {
     KeyMap *keyMap = new KeyMap(index);
-    index++;
+    index = 1 - index;
     return keyMap;
 }

@@ -1,3 +1,4 @@
+#include "../entities/defense/armor.h"
 #include "hud.h"
 #include "ui_hud.h"
 #include "config.h"
@@ -71,6 +72,18 @@ void HUD::setDefenseImage(QImage* img) {
         ui->graphicsViewDefense->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
         ui->graphicsViewDefense->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
         ui->graphicsViewDefense->setFixedSize(50, 50);
+    }
+}
+
+void HUD::updateArmorDurability(int durability, int maxDurability, bool visible) {
+    if (!ui->defenseDurabilityOverlay) return;
+    if (visible && maxDurability > 0) {
+        int barWidth = 50 * durability / maxDurability;
+        if (barWidth < 0) barWidth = 0;
+        ui->defenseDurabilityOverlay->setGeometry(0, 0, barWidth, 50);
+        ui->defenseDurabilityOverlay->show();
+    } else {
+        ui->defenseDurabilityOverlay->hide();
     }
 }
 

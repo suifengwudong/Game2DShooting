@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>250</width>
-    <height>400</height>
+    <width>440</width>
+    <height>560</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -28,7 +28,7 @@
       </font>
      </property>
      <property name="text">
-      <string>BiuBiuBiu</string>
+      <string>2D对战射击游戏</string>
      </property>
      <property name="alignment">
       <set>Qt::AlignCenter</set>
@@ -54,6 +54,12 @@
       <layout class="QVBoxLayout" name="verticalLayout">
        <item>
         <widget class="QPushButton" name="startButton">
+         <property name="minimumSize">
+          <size>
+           <width>220</width>
+           <height>64</height>
+          </size>
+         </property>
          <property name="font">
           <font>
            <pointsize>16</pointsize>
@@ -66,6 +72,12 @@
        </item>
        <item>
         <widget class="QPushButton" name="settingsButton">
+         <property name="minimumSize">
+          <size>
+           <width>220</width>
+           <height>64</height>
+          </size>
+         </property>
          <property name="font">
           <font>
            <pointsize>16</pointsize>
@@ -78,6 +90,12 @@
        </item>
        <item>
         <widget class="QPushButton" name="mapEditorButton">
+         <property name="minimumSize">
+          <size>
+           <width>220</width>
+           <height>64</height>
+          </size>
+         </property>
          <property name="font">
           <font>
            <pointsize>16</pointsize>
@@ -90,6 +108,18 @@
        </item>
        <item>
         <widget class="QPushButton" name="exitButton">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="minimumSize">
+          <size>
+           <width>220</width>
+           <height>64</height>
+          </size>
+         </property>
          <property name="font">
           <font>
            <pointsize>16</pointsize>

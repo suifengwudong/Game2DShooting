@@ -21,6 +21,7 @@ public:
     void setPlayerImage(QImage* img);
     void setWeaponImage(QImage* img);
     void setDefenseImage(QImage* img);
+    void updateArmorDurability(int durability, int maxDurability, bool visible);
     void startAttactCDCountingDown();
 
 private:

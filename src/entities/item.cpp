@@ -43,7 +43,7 @@ void Item::update() {
                     setPos(pos().x(), terrain->pos().y() - boundingRect().height());
                     setVel(QPointF(0, 0)); // Stop falling
                     // Handle collision with terrain
-                    terrain->onCollidedWith(this);
+                    setOnGround(true);
                     checkBoundaries();
                     return; // Stop further processing if collided
                 }
@@ -59,7 +59,6 @@ void Item::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWid
     if (img && !img->isNull()) {
         painter->drawImage(boundingRect(), *img, QRectF(0, 0, img->width(), img->height()));
     }
-    qDebug() << boundingRect();
 }
 
 QImage* Item::getImage() {

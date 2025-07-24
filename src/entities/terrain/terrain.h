@@ -17,10 +17,6 @@ public:
     QImage* getImage();
     int getTypeId();
 
-    void onCollidedWith(GameObject *obj);
-    void onCollidedWith(Item *item);
-    virtual void onCollidedWith(Player *player) = 0;
-
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget = nullptr) override final;
 
 protected:
