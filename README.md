@@ -74,7 +74,7 @@
 | QEvent/QKeyEvent    | 键盘事件处理                     |
 | QStyleOptionGraphicsItem | 自定义绘制参数           |
 
-- 参考部分开源项目的 UI 设计思路（如 Github 上的 Qt 游戏项目）
+- 参考部分开源项目的 UI 设计思路（如 Github 上的 Qt 游戏项目https://github.com/MeLikeyCode/QtGameEngine?tab=readme-ov-file）
 - 代码中如有第三方库/资源，均已在相应文件注明出处
 
 ---
